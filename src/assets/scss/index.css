@@ -1,0 +1,17 @@
+@charset "UTF-8";
+#divNormal {
+  justify-content: center;
+  width: 800px;
+  font-size: 12px;
+  margin-left: 100%; }
+
+#menú {
+  display: none; }
+
+@media screen and (max-width: 800px) {
+  #divNormal {
+    display: none; }
+  #menú {
+    display: ie-block;
+    float: right;
+    width: 100px; } }

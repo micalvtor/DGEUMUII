@@ -1,0 +1,46 @@
+@charset "UTF-8";
+#menú {
+  color: white;
+  background-color: black; }
+
+#subMenú {
+  display: none; }
+
+@keyframes apertura {
+  from {
+    height: 0px; }
+  to {
+    height: 220px; } }
+
+#menú:hover {
+  word-wrap: break-word;
+  background-color: orange; }
+  #menú:hover #subMenú {
+    animation: apertura 2s 1;
+    z-index: 2;
+    background-color: black;
+    width: 100px;
+    display: block;
+    position: absolute;
+    overflow: hidden;
+    color: white;
+    word-wrap: break-word; }
+
+.seccion2 {
+  word-wrap: break-word;
+  text-align: center;
+  float: left;
+  z-index: 1;
+  width: 100%;
+  border-top: 1px solid grey;
+  border-bottom: 1px solid grey; }
+
+.enlace2 {
+  width: 100%;
+  font-size: 70%;
+  text-align: center;
+  word-wrap: break-word;
+  color: white; }
+
+.enlace:hover {
+  color: gold; }

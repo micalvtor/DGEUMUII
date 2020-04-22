@@ -1,0 +1,470 @@
+/*
+ * 01-Febrero-2018
+ * Hoja de estilos para distribucion de espacios.
+ */
+
+body 
+{
+  font-family: Helvetica, Arial, sans-serif!important;
+}
+
+#logo
+{   
+   background-image: url(../imagenes/logo-completo-434.png);
+   background-repeat: no-repeat;
+   background-position: center;
+   height: 85px;
+   padding-top: 10px;
+   text-align: center;
+   font-size: 15px;
+   font-weight: bold;
+   margin-bottom: 1.5%;
+   /* border: 1px solid #FF0000; */
+}
+
+#titulo
+{
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #5680AA;
+   margin-bottom: 1.5%;
+    /* color: #990000; */
+}
+
+.espacios
+{
+   width: 95%;
+}
+
+.listado
+{
+   width: 80%;
+   margin-left: 10%;
+}
+
+.espacios .contenido-80
+{
+   width: 90%;
+   float: left;
+   margin-right: 0.5%;
+   /*margin-bottom: 1%;*/
+
+   /*
+   font-size: 16px;
+   color: #45AFB7;
+   background-color: #aaaaaa;
+   */
+}
+
+.espacios label
+{
+   margin-right: 2%;
+   margin-left: 0.1%;
+   /* border: 1px solid #FFA980; */
+}
+
+.espacios h3
+{
+   text-align: center;
+   color: #3E58AA;
+}
+
+.espacios select
+{
+   width: 95%;
+   border: 1px solid #3E58AA;
+}
+
+.espacios .etiq_radio
+{
+   float: right;
+   width: 80%;
+   margin-top: 2%;
+   margin-left:0;
+   /*color: #afcd56;
+   border: 1px solid #FFA980; */
+}
+
+.espacios .contenido-10
+{
+   float: left;
+   width: 10%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA; */
+}
+
+.espacios .contenido-15
+{
+   float: left;
+   width: 15%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /* border: 1px solid #3E58AA; */
+}
+
+.espacios .contenido-20
+{
+   float: left;
+   width: 20%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA; */
+}
+
+.espacios .contenido-25
+{
+   float: left;
+   width: 25%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA; */
+}
+
+
+.espacios .contenido-30
+{
+   float: left;
+   width: 30%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA;*/
+}
+
+.espacios .contenido-40
+{
+   float: left;
+   width: 40%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA; */
+}
+
+.espacios .contenido-45
+{
+   float: left;
+   width: 45%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.3%;
+   /*border: 1px solid #3E58AA; */
+}
+
+.espacios .contenido-50
+{
+   float: left;
+   width: 50%;
+   margin-right: 1%;
+   margin-top: 2%;
+   margin-bottom: 0.2%;
+   /*
+   color: #afcd56;
+   border: 1px solid #3E58AA; 
+   */
+}
+
+.contenido-20 button
+{
+   margin-top: 11%;
+}
+
+
+.espacios .registro .contenido-2,
+{
+   width: 2%;
+   float: left;
+   padding-left: 1%;
+   margin-right: 0.5%;
+   margin-bottom: 1%;
+   border: 1px solid #dddddd;
+   color: #3E77AA;
+}
+
+.clr
+{
+  clear: both;
+}
+
+
+.registro
+{
+   width: 100%;
+   margin-left: 0.3%;
+   height: 24px;
+   -moz-box-sizing: content-box;
+   box-sizing: content-box;
+   padding-bottom: 0;
+   margin-bottom: 0;
+}
+
+.registro:hover
+{
+   color: #3E58AA;
+   font-weight: bold;
+   /*
+   outline-color: #3E58AA;
+   outline-style: solid;
+   outline-offset: 0px;
+   */
+   border: 2px solid #3E58AA;
+   box-shadow: 1px 1px #3E58AA;
+}
+
+.registro .colum-3,
+.registro .colum-5,
+.registro .colum-6,
+.registro .colum-8,
+.registro .colum-10,
+.registro .colum-12,
+.registro .colum-15,
+.registro .colum-20,
+.registro .colum-22,
+.registro .colum-30,
+.registro .colum-40
+{
+   padding-left: 0.1%;
+   margin-right: 0.4%;
+   margin-bottom: 1%;
+   padding-top: 3px;
+   text-align: left;
+   height: 24px;
+   border: 1px solid #dddddd; 
+}
+
+.registro .colum-3
+{
+   width: 3%;
+   float: left;
+}
+
+.registro .colum-5
+{
+   width: 5%;
+   float: left;
+}
+
+.registro .colum-6
+{
+   width: 6%;
+   float: left;
+}
+
+.registro .colum-8
+{
+   width: 8%;
+   float: left;
+}
+
+.registro .colum-10, .colum-10
+{
+   width: 10%;
+   float: left;
+}
+
+.registro .colum-12
+{
+   width: 12%;
+   float: left;
+}
+
+.registro .colum-15
+{
+   width: 15%;
+   float: left;
+}
+
+.registro .colum-20
+{
+   width: 20%;
+   float: left;
+}
+
+.registro .colum-22
+{
+   width: 23%;
+   float: left;
+}
+
+.registro .colum-30
+{
+   width: 30%;
+   float: left;
+}
+
+.registro .colum-40
+{
+   width: 40%;
+   float: left;
+}
+
+.listado_cab, .pag
+{
+   background: #dddddd;
+   height: 20px;
+}
+.pag_actual
+{
+   background: #eeeeee;
+   height: 20px;
+}
+
+.fila
+{
+   width: 100%;
+   /*border: 1px solid #FF0000;*/
+}
+
+.fila .contenido-2,
+.fila .contenido-2-rojo
+{
+   width: 2%;
+   float: left;
+   padding-left: 1%;
+   margin-right: 0.5%;
+   margin-bottom: 1%;
+   border: 1px solid #dddddd;
+   color: #3E77AA;
+}
+
+.contenido-2-rojo a
+{
+   color: #FF0000;
+}
+
+.fila .contenido-12
+{
+   width: 12%;
+   float: left;
+   margin-right: 0.5%;
+   margin-left: 2%;
+   margin-top: 0;
+   /*border: 1px solid #FFF000;*/
+}
+
+.fila .contenido-18
+{
+   width: 18%;
+   float: left;
+   margin-right: 0.5%;
+   margin-left: 0;
+   margin-top: 0;
+   /*border: 1px solid #FF00F0;*/
+}
+
+
+.espacios input[type=text]
+{
+   width: 65%;
+   text-align: left;
+   border: 1px solid #3E77AA;
+}
+
+.espacios fieldset
+{
+   /*
+   border: 1px dashed #a7a7a7;
+   margin-top: 15px;
+   padding-left: 15px;
+   padding-top: 1px;
+   */
+   display: block;
+   margin-left: 2px;
+   margin-right: 2px;
+   margin-bottom: 10px;
+   padding-top: 0.35em;
+   padding-bottom: 0.625em;
+   padding-left: 0.75em;
+   padding-right: 0.75em;
+   border: 1px dotted #a7a7a7;
+}
+
+.espacios legend
+{
+   /*
+   border: none;
+   padding-top: 0px;
+   padding-left: 10px;
+   padding-bottom: 0px;
+   */
+   width: 18%;
+   display: block;
+   padding-left: 2px;
+   padding-right: 2px;
+   border: none;
+   color: #3E77AA;
+   margin-bottom: 0px;
+}
+
+.espacios fieldset .contenido-10,
+.espacios fieldset .contenido-15,
+.espacios fieldset .contenido-20,
+.espacios fieldset .contenido-40,
+.espacios fieldset .contenido-45,
+.espacios fieldset .contenido-30,
+.espacios fieldset .contenido-50
+{
+   margin-top: 0px;
+   border: 1px #FFFF00;
+   /*color: #00FF00; */
+}
+
+.espacios fieldset .contenido-2
+{
+   margin-top: 35px;
+   /*margin-right: 15px;*/
+   margin-right: 2%;
+   padding-left: 0px;
+   border: none;
+ /*  background-color: #00FF00;*/
+}
+
+/*
+.espacios .resultado div[class^="contenido-"]
+{
+   border: 1px dashed #0000FF;
+}
+*/
+
+.espacios .resultado input[type=text]
+{
+   width: 90%;
+   /*color: #FF0000;*/
+}
+
+.espacios .resultado input[type=text]:read-only,
+.espacios .resultado select:disabled
+{
+   background-color: #eeeeee;
+   color: #000000;
+}
+
+.espacios textarea
+{
+   width: 97%;
+   text-align: left;
+   border: 1px solid #3E77AA;
+}
+
+table 
+{
+   border-collapse: collapse;
+   width: 60%;
+}
+
+th, td 
+{
+   text-align: left;
+   padding: 8px;
+}
+
+tr:nth-child(even) 
+{
+   background-color: #f2f2f2;
+}

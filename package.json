@@ -1,0 +1,46 @@
+{
+  "name": "helloworld",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/react-redux": "^7.1.1",
+    "babel-preset-react-native": "^4.0.0",
+    "bootstrap": "^4.3.1",
+    "glyphicons": "^0.2.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-redux": "^7.1.0",
+    "react-scripts-ts": "^4.0.8",
+    "reactstrap": "^7.1.0",
+    "redux": "^4.0.4"
+  },
+  "scripts": {
+    "start": "npm-run-all -p watch-css start-js",
+    "start-js": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject",
+    "build-css": "node-sass --include-path ./node_modules src/assets/scss -o ./src/assets/css --recursive",
+    "watch-css": "npm run build-css && node-sass --include-path ./node_modules src/assets/scss -o src/assets/scss --watch --recursive"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.10",
+    "@types/node": "^10.12.12",
+    "@types/react": "^16.7.13",
+    "@types/react-dom": "^16.0.11",
+    "@types/webfontloader": "^1.6.29",
+    "bootstrap-scss": "^4.1.3",
+    "react-bootstrap": "^0.31.0",
+    "install": "^0.12.2",
+    "node-sass": "^4.11.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^3.2.2",
+    "webfontloader": "^1.6.28"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

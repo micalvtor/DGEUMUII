@@ -1,0 +1,285 @@
+/*
+
+Theme Name: Favourite
+Theme URL: http://demo.favthemes.com/favourite/
+Description: Responsive and Customizable Joomla! Framework 
+Author: FavThemes
+Author URI: http://www.favthemes.com
+Bootstrap Authors: @mdo and @fat
+Theme Version: 2.4
+License: GNU General Public License v3.0
+License URI: http://www.gnu.org/copyleft/gpl.html
+
+*/
+
+/* STYLE 8
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+
+/* GENERAL CSS
+---------------------------------------------------------------------- */
+
+a {
+  color: #3E58AA;
+  text-decoration: none;
+}
+
+/* NAVIGATION
+---------------------------------------------------------------------- */
+
+#fav-nav .navigation .nav-pills > .active > a, 
+#fav-nav .navigation .nav-pills > li > a:hover {
+  color: #3E58AA;
+}
+#fav-nav .navigation .nav-pills .nav-child > .active > a, 
+#fav-nav .navigation .nav-pills .nav-child > li > a:hover  {
+  color: #3E58AA;
+}
+
+/* TOP
+---------------------------------------------------------------------- */
+
+#fav-top .moduletable a:hover,
+#fav-top div[class^="moduletable-"] a:hover,
+#fav-top div[class*=" moduletable-"] a:hover { 
+  color: #3E58AA; 
+}
+
+/* FOOTER
+---------------------------------------------------------------------- */
+
+#fav-footer .moduletable li a:hover,
+#fav-footer div[class^="moduletable-"] li a:hover,
+#fav-footer div[class*=" moduletable-"] li a:hover { 
+  color: #3E58AA; 
+}
+#fav-footer .moduletable a,
+#fav-footer div[class^="moduletable-"] a,
+#fav-footer div[class*=" moduletable-"] a, 
+#fav-footer .moduletable p a,
+#fav-footer div[class^="moduletable-"] p a,
+#fav-footer div[class*=" moduletable-"] p a { 
+  color: #3E58AA; 
+}
+
+/* COPYRIGHT
+---------------------------------------------------------------------- */
+
+#fav-copyright ul li.active a, 
+#fav-copyright ul li a:hover, 
+#fav-copyright ul li:hover a { 
+  color: #3E58AA; 
+}
+
+/* J!CONTENT CSS  
+---------------------------------------------------------------------- */
+
+/* Article Title */
+.page-header h2 a:hover, 
+h2.item-title a:hover { 
+  color: #3E58AA; 
+}
+
+/* Article Info */
+ul.dropdown-menu a:hover { 
+  color: #3E58AA; 
+  background-color: transparent;
+  background-image:none;  
+}
+
+/* Create Article */
+div.edit button.btn.btn-primary {
+  background-color: #3E58AA; 
+  color: #fff; 
+  border: 1px solid #39529e;
+}
+div.edit button.btn.btn-primary:hover {
+  background-color: #3E58AA;
+  border: 1px solid #39529e;
+}
+
+/* TYPOGRAPHY 
+---------------------------------------------------------------------- */
+
+/* Buttons */
+.btn-primary { 
+  background-color: #3E58AA; 
+  border: 1px solid #39529e;
+  color: #ffffff;
+}
+.btn-primary:hover { 
+  background-color: #3E58AA;
+  border: 1px solid #39529e;
+  color: #ffffff;
+}
+
+/* Badge */
+.badge-info {
+background-color: #3E58AA;
+}
+
+/* Image Fill */
+.img-fill {
+  background-color: #3E58AA;
+}
+
+/* Menu Basic */
+.moduletable ul.nav.menubasic li.current.active a,
+div[class^="moduletable-"] ul.nav.menubasic li.current.active a,
+div[class*=" moduletable-"] ul.nav.menubasic li.current.active a {
+  background-color: #3E58AA;
+  color: #fff;
+}
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child a,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child a,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child a,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active ul.nav-child.unstyled.small a,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active ul.nav-child.unstyled.small a,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active ul.nav-child.unstyled.small a {
+  background-color: #fff;
+  color: #3E58AA;
+}
+.moduletable ul.nav.menubasic ul.nav-child.unstyled.small a,
+div[class^="moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small a,
+div[class*=" moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small a {
+  color: #3E58AA;
+}
+.moduletable ul.nav.menubasic ul.nav-child.unstyled.small li.current.active a,
+div[class^="moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.current.active a,
+div[class*=" moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.current.active a,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a:hover,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a:hover,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child li.current.active.deeper.parent a:hover,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a,
+.moduletable ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a:hover,
+div[class^="moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a:hover,
+div[class*=" moduletable-"] ul.nav.menubasic li.active.deeper.parent ul.nav-child.unstyled.small li.current.active a:hover,
+.moduletable ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.current.active.deeper.parent a,
+div[class^="moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.current.active.deeper.parent a,
+div[class*=" moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.current.active.deeper.parent a,
+.moduletable ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.active.deeper.parent ul.nav-child a,
+div[class^="moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.active.deeper.parent ul.nav-child a,
+div[class*=" moduletable-"] ul.nav.menubasic ul.nav-child.unstyled.small li.active.deeper.parent li.active.deeper.parent ul.nav-child a {
+  background-color: #3E58AA;
+  color: #fff;
+}
+.moduletable ul.nav.menubasic li li.current.active,
+div[class^="moduletable-"] ul.nav.menubasic li li.current.active,
+div[class*=" moduletable-"] ul.nav.menubasic li li.current.active,
+.moduletable ul.nav.menubasic li li li.current.active,
+div[class^="moduletable-"] ul.nav.menubasic li li li.current.active,
+div[class*=" moduletable-"] ul.nav.menubasic li li li.current.active,
+.moduletable ul.nav.menubasic li li li li.current.active,
+div[class^="moduletable-"] ul.nav.menubasic li li li li.current.active,
+div[class*=" moduletable-"] ul.nav.menubasic li li li li.current.active {
+  background-color: #3E58AA;
+  color: #fff;
+}
+
+
+/* MODULE VARIATIONS  
+---------------------------------------------------------------------- */
+
+/* Variation 1 */
+.moduletable-sfx1 h3 i {
+  background-color: #3E58AA;
+}
+
+/* Variation 2 */
+.moduletable-sfx2 h3 i {
+  background-color: #3E58AA;
+}
+
+/* Variation 4 */
+.moduletable-sfx4 h3 {
+  background-color: #3E58AA;
+}
+
+/* Variation 5 */
+.moduletable-sfx5 h3 {
+  background-color: #3E58AA;
+  color: #fff;
+}
+
+/* Variation 7 */
+.moduletable-sfx7 {
+  background-color: #3E58AA;
+  color: #fff; 
+}
+
+/* Variation 8 */
+.moduletable-sfx8 {
+  background-color: #3E58AA;
+  color: #fff; 
+}
+
+
+/* K2
+---------------------------------------------------------------------- */
+
+/* Category Title */
+div.itemListCategory h2:before {
+  color: #3E58AA;
+}
+
+/* Category Item Title */
+div.catItemHeader h3.catItemTitle a:hover {
+  color: #3E58AA; 
+}
+
+/* Category Item Featured  */
+div.itemIsFeatured h2:before, 
+div.catItemIsFeatured h3:before, 
+div.userItemIsFeatured h3:before {
+  color: #3E58AA;
+  background-color: #eee;
+}
+
+/* Latest Items Title */
+div.latestItemsCategory h2:before {
+  color: #3E58AA;
+}
+
+/* K2 User */
+div.k2LoginBlock fieldset.input input.button,
+div.k2UserBlock form input.button.ubLogout {
+  background-color: #3E58AA; 
+  color: #fff; 
+  border: 1px solid #39529e;
+}
+div.k2LoginBlock fieldset.input input.button:hover,
+div.k2UserBlock form input.button.ubLogout:hover {
+  background-color: #3E58AA;
+  border: 1px solid #39529e;
+}
+
+/* User Profile */
+.k2AccountPage button.button.validate {
+  background-color: #3E58AA; 
+  color: #fff; 
+  border: 1px solid #39529e;
+}
+.k2AccountPage button.button.validate:hover { 
+  background-color: #3E58AA;
+  border: 1px solid #39529e;
+}
+
+
+/* EXTENSIONS
+---------------------------------------------------------------------- */
+
+/*
+#fav-user div[id^="faveffects-icon"], 
+#fav-user div[id*=" faveffects-icon"] {
+  border: 4px solid #3E58AA!important;
+  background-color: #3E58AA!important; 
+}
+*/
