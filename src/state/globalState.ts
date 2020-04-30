@@ -1,5 +1,4 @@
 interface IGlobalState{
-    collapsed: boolean;
     displayFinal: IMenuItem[];
 
 }
@@ -15,7 +14,6 @@ export interface IMenuLink{
 
 export default IGlobalState;
 export const initialState:IGlobalState ={
-    collapsed:true,
     displayFinal:[{desplegable:false,factores:[{link:"https://www.informatica.us.es/index.php/historia",name:"historia"},{link:"https://www.informatica.us.es/index.php/situacion",name:"Situación"},
     {link:"https://www.informatica.us.es/index.php/directorio",name:"Directorio"},{link:"https://www.informatica.us.es/index.php/junta-de-centro",name:"Junta de Centro"},
     {link:"https://www.informatica.us.es/index.php/direccion",name:"Dirección"},{link:"https://www.informatica.us.es/index.php/comisiones",name:"Comisiones"},
