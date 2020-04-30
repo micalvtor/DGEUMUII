@@ -1,22 +1,37 @@
 import * as React from 'react';
 import "../assets/scss/Dropdown.scss";  
-import {IMenuItem} from "../state/globalState";
-
+import {IMenuLink} from "../state/globalState";
+import MenuGroup from '../components/MenuGroup';
 interface IMenuItemProps{
-    menuItems: IMenuItem;
+    desplegable: boolean;
+    factores: IMenuLink[];
+
 }
 interface IMenuItemState{
-  searchText: string;
+  factores:IMenuLink[];
+  desplegable: boolean;
 
 }
 export default class MenuItem extends React.Component<IMenuItemProps,IMenuItemState> {
     constructor(props:IMenuItemProps){
      super(props);
+     this.state={desplegable:true,factores:[]}
     };
-
+    public onFilterClick = () =>{
+        this.setState({desplegable:!!!this.state.desplegable});
+    }
     public render() {
-        const {desplegable, factores} = this.props.menuItems;
-        const result = desplegable ? factores: null;
-        return (result);
+        const subseccion= this.props.factores.map((menuItems:IMenuLink, index:number) => {
+            return (<MenuGroup key={index} link={menuItems.link} name={menuItems.name}/>);
+        })
+        
+        return (<div>
+            <label onClick={this.onFilterClick}>Menu prueba</label>
+            {!!!this.state.desplegable ?
+            subseccion
+            :null}
+
+        </div>
+        );
     }
 }
