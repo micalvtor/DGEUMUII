@@ -4,22 +4,22 @@ import {IMenuItem} from "../state/globalState";
 import MenuItem from '../components/MenuItem';
 
 interface IHeaderProps{
-    menuItems: IMenuItem[];
+  displayFinal: IMenuItem[];
 }
 interface IHeaderState{
-    menuItems: IMenuItem[];
+  displayFinal: IMenuItem[];
 
 }
 class Dropdown extends React.Component<IHeaderProps,IHeaderState> {
 constructor(props:IHeaderProps){
  super(props);
- this.state={menuItems:[]}
+ this.state={displayFinal:[]}
 };
 
  public render() {
   
-  const menuGroup = this.props.menuItems.map((menuItems:IMenuItem, index:number) => {
-    return (<MenuItem key={index}  desplegable={menuItems.desplegable} factores={menuItems.factores}/>);
+  const menuGroup = this.props.displayFinal.map((menuItems:IMenuItem, index:number) => {
+    return (<MenuItem key={index}  desplegable={menuItems.desplegable} factores={menuItems.factores} seccion={menuItems.seccion}/>);
   })
   
     return (
@@ -56,7 +56,7 @@ constructor(props:IHeaderProps){
 
 </td>
 </tr>
- }
+ 
     </table>
     </div>
 );
