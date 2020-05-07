@@ -1,134 +1,48 @@
-@mixin menu($size, $altura,$border,$content, $estilo,$top) {
-    min-width: $size;
-    max-width: $size;
-    max-height:$altura;
-    border: $border;
-    text-align: $content;
-    font-family:  $estilo;
-    vertical-align: $top;
-    color: gold;
-    margin-right:-10%;
-    background-color: maroon;
-    font-size: 110%;
-    
-    
-    
-  }
- 
-  .dropdown {
-    @include menu(160px,20px, 3px solid gold,center,"Times New Roman",top);
-  }
-  #div1{
-    min-width: 160px;
-    max-width: 160px;
-  }
-  .dropdown:hover{
-    color:black;
-    
-
-    
-
-    background: rgba(165,42,42,1);
-    background: -moz-linear-gradient(top, rgba(165,42,42,1) 0%, rgba(128,0,0,1) 100%);
-    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(165,42,42,1)), color-stop(100%, rgba(128,0,0,1)));
-    background: -webkit-linear-gradient(top, rgba(165,42,42,1) 0%, rgba(128,0,0,1) 100%);
-    background: -o-linear-gradient(top, rgba(165,42,42,1) 0%, rgba(128,0,0,1) 100%);
-    background: -ms-linear-gradient(top, rgba(165,42,42,1) 0%, rgba(128,0,0,1) 100%);
-    background: linear-gradient(to bottom, rgba(165,42,42,1) 0%, rgba(128,0,0,1) 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a52a2a', endColorstr='#800000', GradientType=0 );
-
-   
-  }
-  .enlace{
-      color:gold;
-      
-      font-size: 100%;
-  }
+#menú{ 
+    color:white;
+    background-color: black;
+    }
+#subMenú{
+    display:none;
+}
+@keyframes apertura {
+    from {height: 0px;}
+    to {height: 220px;}
   
-  .seccion{
-    text-align:left;
+  }
+#menú:hover{
+    word-wrap: break-word;
+background-color:#FDC82F;
+#subMenú{
+    animation: apertura 2s 1;
+    z-index: 2;
+    background-color:black;
+    width:100px;
+    display:block;
+    position:absolute;
+    overflow:hidden;
+    color:white;
+    word-wrap: break-word;
+}
+}
+.seccion2{
+    word-wrap: break-word;
+    text-align:center;
     float:left;
     z-index: 1;
-    width:116px;
-    margin-left:-10%;
+    width:100%;
     border-top:1px solid grey;
     border-bottom:1px solid grey;
   }
 
-li{
-  color:maroon;
-  list-style-type:none;
+.enlace2{
+    width:100%;
+    font-size:70%;
+    text-align:center;
+    word-wrap: break-word;
+    color:white;
 }
-li:hover ~ .seccion{
-  color: black;
-  
-}
-.oculto{
-  width:140px;
-  display: none;
-  max-height:0px;
-  min-height:0px
-} 
-@mixin desplegable($margen, $altura,$animation) {
-  z-index: 2;
-  position: absolute;
-  margin-left: $margen;
-  height: $altura;
-  border-left:3px solid gold;
-  border-right:3px solid gold;
-  border-bottom:3px solid gold;
-  background-color:maroon;
-  animation: $animation 2s 1;
-  overflow: hidden;
-  
-}
+.enlace:hover{
 
-@keyframes mymove {
-  from {height: 0px;}
-  to {height: 405px}
-
-}
-@keyframes mymove2 {
-  from {height: 0px;}
-  to {height: 105px}
-
-}
-@keyframes mymove3 {
-  from {height: 0px;}
-  to {height: 295px}
-
-}
-@keyframes mymove4 {
-  from {height: 0px;}
-  to {height: 105px}
-
-}
-@keyframes mymove5 {
-  from {height: 0px;}
-  to {height: 130px}
-
-}
-@keyframes mymove6 {
-  from {height: 0px;}
-  to {height: 105px}
-
-}
-
-#visible {
-  @include desplegable(-2px,405px,mymove);
-}
-#visible2 {
-  @include desplegable(158px,150px,mymove2);
-}
-#visible3 {
-  @include desplegable(318px,295px,mymove3);
-}
-#visible4 {
-  @include desplegable(478px,105px,mymove4);
-}
-#visible5 {
-  @include desplegable(638px,130px,mymove5);
-}
-#visible6 {
-  @include desplegable(798px,105px,mymove6);
+    color:gold;
 }
