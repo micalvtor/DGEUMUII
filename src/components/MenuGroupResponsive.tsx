@@ -1,28 +1,30 @@
 import * as React from 'react';
 import "../assets/scss/Dropdown.scss";  
-import {IMenuLink} from "../state/globalState";
 
 interface IMenuLinkProps{
-    group:IMenuLink[];
+    link:string;
+    name:string;
     
 }
 interface IMenuLinkState{
-   group:IMenuLink[];
+    link:string;
+    name:string;
 
 }
-export default class MenuItem extends React.Component<IMenuLinkProps,IMenuLinkState> {
+export default class MenuGroupResponsive extends React.Component<IMenuLinkProps,IMenuLinkState> {
     constructor(props:IMenuLinkProps){
      super(props);
      
      this.state = {
-        group: [],
+        link:"",
+        name:"",
         
       }
     };
 
     public render() {
-        const {link, name} = this.props.group[0];
-        const group =  " <a className='enlace2' href='" + link +  "'>" +name+" </a>";
-        return (group);
+        
+        return ( <a className='enlace2' href={this.props.link }>{this.props.name} </a>);
+
     }
 }
