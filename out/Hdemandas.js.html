@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Hdemandas.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Hdemandas.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code> /**
+
+ * @fileoverview Código para borraar archivos en caso de borrado del caso asignado
+
+ *
+
+ * @version                               2.2
+
+ *
+
+ * @author                 Mickael Alvarez Torralba, Manuel Mallén Rodríguez &lt;mickael_at@hotmail.com,gacetuplex@gmail.com>
+
+ * @copyright           Termotecnia
+
+
+        */
+angular.module('myApp').service('Hdemandas', ['$http', function ($http)
+{
+this.CalculoDemandas = async function () {
+    Cerrarseccion = function(texto2)
+    {
+        texto2 += '..\r\n';
+        texto2 += '------------------------------------------------------------------------------\r\n';
+        return texto2;
+    }
+    obtenerdatosedificio();
+    vaciarcontenido();
+    MostrarSpinner();
+    await cargartodoBD();
+    //Comprobamos que los datos de la base de daos son correctos
+    if (ADufcaso.length == 0) {
+        alert('Defina el caso en la sección Datos Generales')
+        OcultarSpinner();
+        return updateComunidad(1);
+    }
+    if (soloVE == "no") {
+        if (ADcontador.length == 0) {
+            alert('No hay contadores definidos para el caso');
+            OcultarSpinner();
+            return updateContadores();
+        }
+        if (ADequipos.length == 0) {
+            alert('Debes definir todos los equipos para poder calcular la demanda');
+            OcultarSpinner();
+            return updateExistente();
+        }
+        for (var x = 0; x &lt; ADequipos.length; x++) {
+            if (ADequipos[x].definido == "no" &amp;&amp; ADequipos[x].tipo == "4" &amp;&amp; ADequipos[x].nuex == "Existente") {
+                alert('Hay al menos un equipo ' + ADequipos[x].nombre + ' que no está definido');
+                OcultarSpinner();
+                return updateExistente();
+            }
+            if (ADequipos[x].idcontador == "" &amp;&amp; ADequipos[x].tipo == "4" &amp;&amp; ADequipos[x].nuex == "Existente" &amp;&amp; ADequipos[x].nombre != "Solar Térmica" &amp;&amp; ADequipos[x].nombre != "Solar Térmica Tubos de vacio" &amp;&amp; ADequipos[x].nombre != "Solar Térmica Captador plano") {
+                alert('Hay al menos un equipo ' + ADequipos[x].nombre + ' sin ningún contador asociado');
+                OcultarSpinner();
+                return updateExistente();
+            }
+        }
+        if (ADcalendario.length == 0) {
+            alert('No se ha definido ningún Calendario')
+            OcultarSpinner();
+            return updateOperaciones();
+        }
+        if (ADgeometria.length == 0) {
+            alert('No se ha definido geometría y construcción');
+            OcultarSpinner();
+            return updateGeometria();
+        }
+    }
+    //Defininmos las variables dentro de la sección
+    var Meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    var contCalendario = 0;
+    var buses = new Array();
+    var nombre = "";
+    var texto = '';
+    var provincia = "";
+    var edificio = "";
+    var idEdificio = "";
+    var clima = "";
+    var casoProvincia = "";
+    var direccion;
+    var periodo;
+    var nombreusuario;
+    var mesIniPerVer;
+    var mesFinPerVer;
+    var TCVer;
+    var TCInv;
+    var anoslectura = 0;
+    var mesactual = 0;
+    var altura = 0;
+    var cp = 0;
+    var bloque = 0;
+    var numero = 0;
+    var nombre = "";
+    var apellido = "";
+    var departamento = "";
+    var consim = "";
+    var arraycalvediastipo = new Array();
+    var arraydtc = new Array();
+    if (ADufcaso[0].generica == "f")
+        valorIntervencion = 1;
+    else
+        valorIntervencion = 0;
+    for (var x = 0; x &lt; ADcaso.length; x++) {
+        if (ADcaso[x].id == idCaso) {
+            provincia = ADcaso[x].provincia;
+            edificio = ADcaso[x].usoedificio;
+            altura = ADcaso[x].altura;
+            casoProvincia = ADcaso[x].provincia;
+            idEdificio = ADcaso[x].idedificio;
+            clima = ADcaso[x].clima;
+            direccion = ADcaso[x].nombrevia;
+            periodo = ADcaso[x].periodo;
+            nombreusuario = ADcaso[x].carpeta;
+            mesIniPerVer = ADcaso[x].mesinicial;
+            mesFinPerVer = ADcaso[x].mesfinal;
+            mesIniPerVer = Meses[mesIniPerVer - 1];
+            mesFinPerVer = Meses[mesFinPerVer - 1];
+            TCVer = ADcaso[x].tempalta;
+            TCInv = ADcaso[x].tempbaja;
+            venNocVer = ADcaso[x].vennocturna;
+            INVsimultanea = ADcaso[x].impedircalefaccion;
+            cp = ADcaso[x].postal;
+            bloque = ADcaso[x].bloque;
+            numero = ADcaso[x].numero;
+            nombre = user.nombre;
+            apellido = user.apellido1;
+            departamento = user.departamento;
+            consim = ADcaso[x].consim;
+        }
+    }
+    casoProvincia = capitalprovincia(casoProvincia);
+    if (clima == "-" || periodo == '-') {
+        alert('No se ha definido una Zona Climática y/o Periodo Constructivo');
+        OcultarSpinner();
+        return updateComunidad(1);
+    }
+    provincia = provinciascdcyr(provincia);
+    var letraclima = clima.substring(0, 1);
+    if (letraclima == "A" || letraclima == "a" || letraclima == "B")
+        var INFclima = "50";
+    else if (letraclima == "C" || letraclima == "D" || letraclima == "E")
+        var INFclima = "27";
+        //Creamos el archivo de demandas
+    if (soloVE == "no") {
+        texto += '==============================================================================================\r\n';
+        texto += '.SECCION = PROGRAMA-CDCYR\n\n';
+        texto += ' +--------------------------------------------------------------------------------------------+ \r\n';
+        texto += '| Archivo de Definición de Edificios para Cálculo de Demandas de Calefacción y Refrigeración | \r\n';
+        texto += '| (C) Grupo TERMOTECNIA AICIA Universidad de Sevilla, desde 1979                             | \r\n';
+        texto += '+--------------------------------------------------------------------------------------------+ \r\n';
+        texto += ' \r\n';
+        texto += 'LOCALIDAD = "' + provincia + '"\r\n';
+        texto += 'ZONA-CLIMATICA = "' + clima + '" \r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        texto += '"DatosGenerales" = DATOS-GENERALES\r\n';
+        texto += 'Dato1              = "Valor por defecto"\r\n';
+        texto += 'tipoEdificio       = "Unifamiliar"\r\n';
+        texto += 'nuevoOExistente    = "Nueva"\r\n';
+        texto += 'ZonaClimatica      = "' + clima + '"\r\n';
+        texto += 'direccion          = "' + direccion + '"\r\n';
+        texto += 'padron             = "' + cp + '"\r\n';
+        texto += 'block              = "' + bloque + '"\r\n';
+        texto += 'unidad             = "' + numero + '"\r\n';
+        texto += 'anoConstruccion    = "' + periodo + '"\r\n';
+        texto += 'nombreApellidosTec = "' + nombre + ' ' + apellido + '"\r\n';
+        texto += 'direccionTec       = "' + departamento + '"\r\n';
+        texto += 'telefonoTec        = "No disponible"\r\n';
+        texto += 'eMailTec           = "' + nombreusuario + '"\r\n';
+        if (mesIniPerVer != undefined) {
+            texto += 'mesIniPerVer       = "' + mesIniPerVer + '"\r\n';
+            texto += 'mesFinPerVer       = "' + mesFinPerVer + '"\r\n';
+            texto += 'TCVer              = "' + TCVer + '"\r\n';
+            texto += 'TCInv              = "' + TCInv + '"\r\n';
+            texto += 'venNocVer          = "' + venNocVer + '"\r\n';
+        }
+        else {
+            texto += 'mesIniPerVer       = "Junio"\r\n';
+            texto += 'mesFinPerVer       = "Septiembre"\r\n';
+            texto += 'TCVer              = "25"\r\n';
+            texto += 'TCInv              = "20"\r\n';
+            texto += 'venNocVer          = "4"\r\n';
+        }
+        if (INVsimultanea == 'si')
+            INVsimultanea = 1;
+        else
+            INVsimultanea = 0;
+        texto += 'diaInicial         = "01/01/2018"\r\n';
+        texto += 'diaFinal           = "31/12/2018"\r\n';
+        texto += 'InvSimultanea      = ' + INVsimultanea + '\r\n';
+        texto += 'claseEdificio      = "' + edificio + '"\r\n';
+        texto += 'datosUnidadesFuncionales = "' + nombreCaso + ';111;1;1;1;1;1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;""\r\n';
+        texto += 'periodoConstructivo = "' + periodo + '"\r\n';
+        texto += '..\r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        for (var i = 0; i &lt; ADufcaso.length; i++) {
+            var longitud = '(';
+            var porcentajeVentana = '(';
+            var UMuro = '(';
+            var UVentana = '(';
+            var gVentana = '(';
+            var FSM = '(';
+            var FSI = '(';
+            var FSVs = '(';
+            var INF = '(';
+            var ObsRet = '(';
+            var ObsVolL = '(';
+            var ObsVolD = '(';
+            var ObsL1 = '(';
+            var ObsH1 = '(';
+            var ObsL2 = '(';
+            var ObsH2 = '(';
+            var ObsL3 = '(';
+            var ObsH3 = '(';
+            var ObsL4 = '(';
+            var ObsH4 = '(';
+            var esCubierta = 0;
+            var esBaja = 0;
+            var contCaras = 0;
+            var caras = '(';
+            var caraorientada;
+            var multiplicador = 0;
+            var superficie = 0;
+            var esNoHab = 0;
+            var supNH = 0;
+            var uNH = 0;
+            var alturaUF = 0;
+            var ACHUF = 0;
+            var tipocaras = [];
+            //definimos la sección geométrica
+            if (ADgeometria.length != 0) {
+                var num = ((i + 1).toString().length &lt; 2 ? "0" + (i + 1) : (i + 1)).toString();
+                texto += '"Espacio_0' + (num) + '" = MODULO \r\n';
+                texto += 'NOMBRE_REF = "Espacio_0' + (num) + '"\r\n';
+                texto += 'NOMBRE_USU = "' + ADufcaso[i].nombreusuario + '"\r\n';
+                texto += 'UNIDAD-FUNCIONAL = "' + ADufcaso[i].nombre + '"\r\n';
+                texto += 'NUMERO-UF = ' + (i + 1) + '\r\n';
+                if (valorIntervencion == "0")
+                    texto += 'DESCRIPCION = "Unidad Funcional Genérica"\r\n';
+                else {
+                    if (ADgeometria.length == 0)
+                        texto += 'DESCRIPCION = "Sin descripcion"\r\n';
+                    for (var g = 0; g &lt; ADgeometria.length; g++)
+                        if (ADufcaso[i].idcaso == ADgeometria[g].idcaso)
+                            if (ADufcaso[i].id == ADgeometria[g].iduf) {
+                                texto += 'DESCRIPCION = "' + ADgeometria[g].descripcion + '"\r\n';
+                                break;
+                            }
+                }
+                for (var y = 0; y &lt; ADgeometria.length; y++) {
+                    if (ADgeometria[y].longitud != "0") {
+                        var cotauf = ADufcaso[i].id;
+                        if (cotauf == ADgeometria[y].iduf) {
+                            contCaras++;
+                            caraorientada = ADgeometria[y].orientacion;
+                            if (valorIntervencion == "1") {
+                                superficie = ADgeometria[y].superficie;
+                                alturaUF = ADgeometria[y].altura;
+                                ACHUF = ADgeometria[y].achequiv;
+                            }
+                            if (valorIntervencion == "0") {
+                                switch (ADgeometria[y].orientacion) {
+                                    case "Cubierta":
+                                        var caraorientada = "Cubierta";
+                                        break;
+                                    case "Suelo":
+                                        var caraorientada = "Suelo";
+                                        break;
+                                    case "N":
+                                        var caraorientada = "Norte";
+                                        break;
+                                    case "NE":
+                                        var caraorientada = "Noreste";
+                                        break;
+                                    case "E":
+                                        var caraorientada = "Este";
+                                        break;
+                                    case "SE":
+                                        var caraorientada = "Sureste";
+                                        break;
+                                    case "S":
+                                        var caraorientada = "Sur";
+                                        break;
+                                    case "SO":
+                                        var caraorientada = "Suroeste";
+                                        break;
+                                    case "O":
+                                        var caraorientada = "Oeste";
+                                        break;
+                                    case "NO":
+                                        var caraorientada = "Noroeste";
+                                        break;
+                                }
+                            }
+                            tipocaras.push(caraorientada);
+                            if (longitud == "(") {
+                                caras += ' "' + caraorientada + '"';
+                                longitud += ' ' + ADgeometria[y].longitud;
+                                porcentajeVentana += ' ' + ADgeometria[y].porcenacristalado;
+                                UMuro += ' ' + ADgeometria[y].umuro;
+                                UVentana += ' ' + ADgeometria[y].uhueco;
+                                gVentana += ' ' + ADgeometria[y].ghueco;
+                                if (valorIntervencion == "0") {
+                                    FSM += ' 0';
+                                    FSI += ' ' + ADgeometria[y].fsinvierno;
+                                    FSVs += ' ' + ADgeometria[y].fsverano;
+                                }
+                                else {
+                                    FSM += ' ' + ADgeometria[y].fsconsombramovil;
+                                    FSI += ' 0';
+                                    FSVs += ' 0';
+                                }
+                                INF += ' ' + INFclima;
+                                ObsRet += ' 0.2';
+                                ObsVolL += ' 0';
+                                ObsVolD += ' 0';
+                                ObsL1 += ' 0';
+                                ObsH1 += ' 0';
+                                ObsL2 += ' 0';
+                                ObsH2 += ' 0';
+                                ObsL3 += ' 0';
+                                ObsH3 += ' 0';
+                                ObsL4 += ' 0';
+                                ObsH4 += ' 0';
+                            }
+                            else {
+                                caras += '  , "' + caraorientada + '"';
+                                longitud += '  , ' + ADgeometria[y].longitud;
+                                porcentajeVentana += '  , ' + ADgeometria[y].porcenacristalado;
+                                UMuro += '  , ' + ADgeometria[y].umuro;
+                                UVentana += '  , ' + ADgeometria[y].uhueco;
+                                gVentana += '  , ' + ADgeometria[y].ghueco;
+                                if (valorIntervencion == "0") {
+                                    FSM += '  , 0';
+                                    FSI += '  , ' + ADgeometria[y].fsinvierno;
+                                    FSVs += '  , ' + ADgeometria[y].fsverano;
+                                }
+                                else {
+                                    FSM += '  , ' + ADgeometria[y].fsconsombramovil;
+                                    FSI += '  , 0';
+                                    FSVs += '  , 0';
+                                }
+                                INF += '  , ' + INFclima;
+                                ObsRet += '  , 0.2';
+                                ObsVolL += '  , 0';
+                                ObsVolD += '  , 0';
+                                ObsL1 += '  , 0';
+                                ObsH1 += '  , 0';
+                                ObsL2 += '  , 0';
+                                ObsH2 += '  , 0';
+                                ObsL3 += '  , 0';
+                                ObsH3 += '  , 0';
+                                ObsL4 += '  , 0';
+                                ObsH4 += '  , 0';
+                            }
+                            multiplicador = ADgeometria[y].multiplicador;
+                            if (ADgeometria[y].orientacion == "Cubierta" || ADgeometria[y].orientacion == "Suelo") {
+                                if (ADgeometria[y].orientacion == "Cubierta")
+                                    esCubierta = 1;
+                                else
+                                    esBaja = 1;
+                                superficie = ADgeometria[y].superficie;
+                            }
+                            if (valorIntervencion == "1") {
+                                if (ADgeometria[y].orientacion == "Interior") {
+                                    esNoHab = 1;
+                                    supNH = ADgeometria[y].longitud;
+                                    uNH = ADgeometria[y].umuro;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (contCaras &lt; 2 || tipocaras.includes("Suelo") == false) {
+                    alert('la geometría de la unidad funcional ' + ADufcaso[i].nombre + ' no está correctamente definida ');
+                    OcultarSpinner();
+                    return;
+                }
+                if (superficie == 0 || superficie == undefined) {
+                    alert('la superficie de la unidad funcional ' + ADufcaso[i].nombre + ' no está correctamente definida ');
+                    OcultarSpinner();
+                    return updateComunidad(1);
+                }
+                texto += 'NUMERO_CARAS = ' + contCaras + '\r\n';
+                texto += 'MULTIPLICADOR = ' + multiplicador + '\r\n';
+                texto += 'orientacion = ' + caras + '  )\r\n';
+                texto += 'superficie = ' + superficie + '\r\n';
+                if (valorIntervencion == 0)
+                    texto += 'renHora = ' + ADgeometria[0].achequiv + ' \r\n';
+                else
+                    texto += 'renHora = ' + ACHUF + '\r\n';
+                if (valorIntervencion == 0)
+                    texto += 'altura = ' + altura + '\r\n';
+                else
+                    texto += 'altura = ' + alturaUF + '\r\n';
+                texto += 'longitud = ' + longitud + '  )\r\n';
+                texto += 'porcentajeVentana = ' + porcentajeVentana + '  )\r\n';
+                texto += 'UMuro = ' + UMuro + '  )\r\n';
+                texto += 'UVentana = ' + UVentana + '  )\r\n';
+                texto += 'gVentana = ' + gVentana + '  )\r\n';
+                if (consim == "no")
+                    texto += 'FSM = ' + FSM + ' )\r\n';
+                else {
+                    texto += 'FSV = ' + FSVs + '  )\r\n';
+                    texto += 'FSI = ' + FSI + ' )\r\n';
+                }
+                texto += 'INF = ' + INF + '  )\r\n';
+                texto += 'ObsRet = ' + ObsRet + '  )\r\n';
+                texto += 'ObsVolL = ' + ObsVolL + '  )\r\n';
+                texto += 'ObsVolD = ' + ObsVolD + '  )\r\n';
+                texto += 'ObsL1 = ' + ObsL1 + '  )\r\n';
+                texto += 'ObsH1 = ' + ObsH1 + '  )\r\n';
+                texto += 'ObsL2 = ' + ObsL2 + '  )\r\n';
+                texto += 'ObsH2 = ' + ObsH2 + '  )\r\n';
+                texto += 'ObsL3 = ' + ObsL3 + '  )\r\n';
+                texto += 'ObsH3 = ' + ObsH3 + '  )\r\n';
+                texto += 'ObsL4 = ' + ObsL4 + '  )\r\n';
+                texto += 'ObsH4 = ' + ObsH4 + '  )\r\n';
+                if (valorIntervencion == 0)
+                    texto += 'renovacionesHora = ' + ADgeometria[0].achequiv + '\r\n';
+                else
+                    texto += 'renovacionesHora = ' + ACHUF + '\r\n';
+                texto += 'condicionesOperacionales = "Intensidad Baja-Duración 8h"\r\n';
+                texto += 'esCubierta = ' + esCubierta + '\r\n';
+                if (esCubierta == 1) {
+                    for (var CUBIERTA = 0; CUBIERTA &lt; ADgeometria.length; CUBIERTA++) {
+                        if (ADgeometria[CUBIERTA].orientacion == "Cubierta") {
+                            var porLuc = ADgeometria[CUBIERTA].porcenacristalado;
+                            var uCub = ADgeometria[CUBIERTA].umuro;
+                            var uLuc = ADgeometria[CUBIERTA].uhueco;
+                            var gLuc = ADgeometria[CUBIERTA].ghueco;
+                            break;
+                        }
+                    }
+                    texto += 'porLuc = ' + porLuc + '\r\n';
+                    texto += 'uCub = ' + uCub + '\r\n';
+                    texto += 'uLuc = ' + uLuc + '\r\n';
+                    texto += 'gLuc = ' + gLuc + '\r\n';
+                }
+                else {
+                    texto += 'porLuc = 0\r\n';
+                    texto += 'uCub = 0\r\n';
+                    texto += 'uLuc = 0\r\n';
+                    texto += 'gLuc = 0\r\n';
+                }
+                if (valorIntervencion == "0") {
+                    texto += 'esNoHab = 0\r\n';
+                    texto += 'supNH = 0\r\n';
+                    texto += 'uNH = 0\r\n';
+                }
+                else {
+                    texto += 'esNoHab = ' + esNoHab + '\r\n';
+                    texto += 'supNH = ' + supNH + '\r\n';
+                    texto += 'uNH = ' + uNH + '\r\n';
+                }
+                texto += 'esBaja = ' + esBaja + '\r\n';
+                texto += '..\r\n';
+                texto += '------------------------------------------------------------------------------\r\n';
+            }
+        }
+        //Sección operacional
+        texto += '"horarios" = HORARIOS-FUNCIONAMIENTO\r\n';
+        texto += 'HORARIO-CALEFACCION   = ( 0  , 0  , 0  , 0  , 0  , 0  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 0  , 0  , 0  , 0  , 0  , 0  , 0  )\r\n';
+        texto += 'HORARIO-REFRIGERACION = ( 0  , 0  , 0  , 0  , 0  , 0  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 1  , 0  , 0  , 0  , 0  , 0  , 0  , 0  )\r\n';
+        texto += 'CARGAS-OCUPACION   = ( 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  )\r\n';
+        texto += 'CARGAS-ILUMINACION = ( 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  ) \r\n';
+        texto += 'CARGAS-EQUIPOS     = ( 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 1.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  , 0.000000  )\r\n';
+        texto += '..\r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        for (var numerouf = 0; numerouf &lt; ADufcaso.length; numerouf++) {
+            var num = ((numerouf + 1).toString().length &lt; 2 ? "0" + (numerouf + 1) : (numerouf + 1)).toString();
+            var numerodiastipo = 0;
+            var indicediastipo = 0;
+            texto += '"DatosOperacionales_UF' + (numerouf + 1) + '" = CONDICIONES-DE-OPERACION\r\n';
+            for (var x = 0; x &lt; ADdiastipocaso.length; x++)
+                if (ADdiastipocaso[x].id_uf == ADufcaso[numerouf].id)
+                    numerodiastipo++;
+            texto += 'lineasArchivoCO1 = ' + numerodiastipo + '\r\n';
+            for (var x = 0; x &lt; ADdiastipocaso.length; x++)
+                if (ADdiastipocaso[x].id_uf == ADufcaso[numerouf].id) {
+                    indicediastipo++;
+                    texto += 'lineaCO1_00' + indicediastipo + ' = "' + ADdiastipocaso[x].nombre + '"\r\n';
+                }
+            indicediastipo = 0;
+            texto += 'lineasArchivoCO3 = ' + numerodiastipo + '\r\n';
+            for (var x = 0; x &lt; ADdiastipocaso.length; x++) {
+                if (ADdiastipocaso[x].id_uf == ADufcaso[numerouf].id) {
+                    var valoreshorarioscal = new Array();
+                    var valoreshorariosref = new Array();
+                    var valoreshorariosocup = new Array();
+                    var valoreshorariosilumequip = new Array();
+                    var valoreshorariosacs = new Array();
+                    var valoresdiastipo = new Array();
+                    var indicevalordiastipo = 0;
+                    var superficieacs = ADufcaso[numerouf].superficie;
+                    var valoracs = 0;
+                    var personasacs = 0;
+                    $.each(ADdiastipocaso[x], function (index, value) {
+                        if (index == "valocup" || index == "valilum" || index == "valequip" || index == "trarepacs" || index == "valacs") {
+                            if (index == "valocup" &amp;&amp; value != 0) {
+                                valoresdiastipo[indicevalordiastipo] = (1 / parseFloat(value)).toFixed(2);
+                                personasacs = value;
+                            }
+                            else
+                                valoresdiastipo[indicevalordiastipo] = value;
+                            if (index == "valacs")
+                                valoracs = value;
+
+                            indicevalordiastipo++;
+                        }
+                    })
+                    valoresdiastipo[3] = (parseFloat(personasacs) * parseFloat(superficieacs) * parseFloat(valoracs)).toFixed(2);
+                    if (ADdiastipocaso[x].nombre == "Tipo 3: Cerrado" || ADdiastipocaso[x].nombre == "Tipo 6: Cerrado")
+                        valoresdiastipo[indicevalordiastipo] = '0';
+                    else
+                        valoresdiastipo[indicevalordiastipo] = '15';
+                    for (var horas = 1; horas &lt; 26; horas++) {
+                        for (var y = 0; y &lt; ADvaloreshorarioscaso.length; y++) {
+                            if (ADdiastipocaso[x].id_diatipo == ADvaloreshorarioscaso[y].id_diatipo &amp;&amp; parseInt(ADvaloreshorarioscaso[y].numerohora) == horas) {
+                                valoreshorarioscal[parseInt(ADvaloreshorarioscaso[y].numerohora)] = ADvaloreshorarioscaso[y].vh_cal;
+                                valoreshorariosref[parseInt(ADvaloreshorarioscaso[y].numerohora)] = ADvaloreshorarioscaso[y].vh_ref;
+                                valoreshorariosocup[parseInt(ADvaloreshorarioscaso[y].numerohora)] = ADvaloreshorarioscaso[y].vh_ocup;
+                                valoreshorariosilumequip[parseInt(ADvaloreshorarioscaso[y].numerohora)] = ADvaloreshorarioscaso[y].vh_ilumequip;
+                                valoreshorariosacs[parseInt(ADvaloreshorarioscaso[y].numerohora)] = ADvaloreshorarioscaso[y].vh_acs;
+                                break;
+                            }
+                        }
+                    }
+                    indicediastipo++;
+                    texto += 'lineaCO3_00' + indicediastipo + ' = "';
+                    for (var a = 1; a &lt; valoreshorarioscal.length; a++)
+                        texto += '' + valoreshorarioscal[a] + ';';
+                    for (var a = 1; a &lt; valoreshorariosref.length; a++)
+                        texto += '' + valoreshorariosref[a] + ';';
+                    for (var a = 1; a &lt; valoreshorariosocup.length; a++)
+                        texto += '' + valoreshorariosocup[a] + ';';
+                    for (var a = 1; a &lt; valoreshorariosilumequip.length; a++)
+                        texto += '' + valoreshorariosilumequip[a] + ';';
+                    for (var a = 1; a &lt; valoreshorariosacs.length; a++)
+                        texto += '' + valoreshorariosacs[a] + ';';
+                    for (var a = 0; a &lt; valoresdiastipo.length; a++) {
+                        if (a != valoresdiastipo.length - 1)
+                            texto += '' + valoresdiastipo[a] + ';';
+                        else
+                            texto += '' + valoresdiastipo[a] + '"\r\n';
+                    }
+                }
+            }
+            //Calendario
+            if (ADcalendario.length != 0) {
+                texto += 'lineasUF_0' + (num) + ' = 365\r\n';
+                texto += 'varEstUF_0' + (num) + ' = "'
+                var valorestacionalocup = new Array();
+                var valorestacionalilumequip = new Array();
+                var valorestacionalacs = new Array();
+                var valorestacionalotros = new Array();
+                if (ADvariacionestacional.length == 0) {
+                    valorestacionalocup = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalilumequip = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalacs = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalotros = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                }
+                else
+                    for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                        if (ADvariacionestacional[x].iduf == ADufcaso[numerouf].id) {
+                            for (var mes = 0; mes &lt;= 12; mes++) {
+                                if (parseInt(ADvariacionestacional[x].idmes) == mes) {
+                                    valorestacionalocup[ADvariacionestacional[x].idmes] = ADvariacionestacional[x].valocup;
+                                    valorestacionalilumequip[ADvariacionestacional[x].idmes] = ADvariacionestacional[x].valilumequip;
+                                    valorestacionalacs[ADvariacionestacional[x].idmes] = ADvariacionestacional[x].valacs;
+                                    valorestacionalotros[ADvariacionestacional[x].idmes] = ADvariacionestacional[x].valotros;
+                                }
+                            }
+                        }
+                    }
+                    //Variación estacional
+                if (valorestacionalocup.length == 0) {
+                    valorestacionalocup = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalilumequip = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalacs = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                    valorestacionalotros = [, "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100", "100"];
+                }
+                for (var a = 1; a &lt; valorestacionalocup.length; a++)
+                    texto += '' + valorestacionalocup[a] + ';';
+                for (var a = 1; a &lt; valorestacionalilumequip.length; a++)
+                    texto += '' + valorestacionalilumequip[a] + ';';
+                for (var a = 1; a &lt; valorestacionalacs.length; a++)
+                    texto += '' + valorestacionalacs[a] + ';';
+                for (var a = 1; a &lt; valorestacionalotros.length; a++) {
+                    if (a != valorestacionalotros.length - 1)
+                        texto += '' + valorestacionalotros[a] + ';';
+                    else
+                        texto += '' + valorestacionalotros[a] + '"\r\n';
+                }
+                var contCalendario = 1;
+                var idCalendario = "";
+                for (var x = 0; x &lt; ADcalendario.length; x++)
+                    if (ADcalendario[x].iduf == ADufcaso[numerouf].id)
+                        idCalendario = ADcalendario[x].id;
+                if (idCalendario == "" || idCalendario == undefined || ADdetallescalendario.length == 0) {
+                    alert('La unidad funcional ' + ADufcaso[numerouf].nombre + ' no tiene definida un Calendario')
+                    OcultarSpinner();
+                    return updateOperaciones();
+                }
+                for (var z = 0; z &lt; ADdetallescalendario.length; z++) {
+                    if (ADdetallescalendario[z].idcalendario == idCalendario) {
+                        $.each(ADdetallescalendario[z], function (index, value) {
+                            if (index == "diatipo") {
+                                if (value == "0")
+                                    value = "1";
+                                if (objedificiosel.usuarioA == false)
+                                    arraydtc.push(value);
+                                if (contCalendario &lt; 10)
+                                    texto += 'lineaUF0' + (num) + '_000' + (contCalendario) + ' = ' + value + '\r\n';
+                                else if (contCalendario &lt; 100)
+                                    texto += 'lineaUF0' + (num) + '_00' + (contCalendario) + ' = ' + value + '\r\n';
+                                else if (contCalendario >= 100)
+                                    texto += 'lineaUF0' + (num) + '_0' + (contCalendario) + ' = ' + value + '\r\n';
+                                contCalendario++;
+                            }
+                        })
+                    }
+                }
+            }
+            texto += '..\r\n';
+            texto += '------------------------------------------------------------------------------\r\n';
+        }
+        texto += '.FIN-SECCION\r\n';
+        texto += '==============================================================================================\r\n';
+    }
+    texto += '.SECCION = EDIM\r\n';
+    texto += '+--------------------------------------------------------------------------------------------+\r\n';
+    texto += '| Archivo de Definición de EDIM |\r\n';
+    texto += '| (C) Grupo TERMOTECNIA AICIA Universidad de Sevilla, desde 1979                             |\r\n';
+    texto += '+--------------------------------------------------------------------------------------------+\r\n';
+    texto += '"DatosGenerales" = DATOS-GENERALES\r\n';
+    if (soloVE == "no")
+        texto += 'SIMULACION_SOLO_VE = 0\r\n';
+    else
+        texto += 'SIMULACION_SOLO_VE = 1\r\n';
+    texto += 'TIPO_EDIFICIO = ' + idEdificio + '\r\n';
+    texto += 'NIVEL_INTERVENCION = ' + valorIntervencion + '\r\n';
+    switch (clima) {
+        case "a1":
+            clima = "Alfa1";
+            break;
+        case "a2":
+            clima = "Alfa2";
+            break;
+        case "a3":
+            clima = "Alfa3";
+            break;
+        case "a4":
+            clima = "Alfa4";
+            break;
+    }
+    texto += 'ZONA_CLIMATICA = "Zona' + clima + '"\r\n';
+    texto += 'CAPITAL_PROVINCIA = "' + casoProvincia + '"\r\n';
+    if (ADpiscina.length == 0)
+        var checkpiscina = 0
+    else
+        var checkpiscina = 1;
+    texto += 'PISCINA = ' + checkpiscina + '\r\n';
+    if (ADVE.length != 0)
+        if (ADVE[0].chkve == "1")
+            var checkvehiculoelectrico = 1
+        else
+            var checkvehiculoelectrico = 0;
+    else
+        var checkvehiculoelectrico = 0;
+    if (soloVE == "si" &amp;&amp; checkvehiculoelectrico == 0) {
+        alert('ERROR: Debe definir el Vehículo Eléctrico');
+        OcultarSpinner();
+        return updateVehiculo();
+    }
+    texto += 'VEHICULO_ELECTRICO = ' + checkvehiculoelectrico + '\r\n';
+    texto += '..\r\n';
+    texto += '------------------------------------------------------------------------------\r\n';
+    //Defininmos vehículo eléctrico si lo hubiera y los contadores
+    if (soloVE == "no") {
+        for (var x = 0; x &lt; ADcontador.length; x++) {
+            if (ADcontador[x].idcaso == idCaso) {
+                anoslectura = 0;
+                texto += '"Contador_' + ADcontador[x].id + '" = CONTADOR\r\n';
+                texto += 'ID_CONTADOR = ' + ADcontador[x].id + '\r\n';
+                for (var y = 0; y &lt; ADconsumo.length; y++) {
+                    if (ADconsumo[y].idcontador == ADcontador[x].id) {
+                        texto += 'BASE_CONTADOR = ' + ADconsumo[y].tipo + '\r\n';
+                        break;
+                    }
+                }
+                var vectorEnergetico = 0;
+                switch (ADcontador[x].vector) {
+                    case "Gas Natural":
+                        vectorEnergetico = 1;
+                        break;
+                    case "Electricidad":
+                        vectorEnergetico = 2;
+                        break;
+                    case "Biomasa":
+                        vectorEnergetico = 3;
+                        break;
+                    case "Gasoil":
+                        vectorEnergetico = 4;
+                        break;
+                    case "Energías Renovables":
+                        vectorEnergetico = 5;
+                        break;
+                }
+                if (vectorEnergetico == 0) {
+                    alert('el contador: ' + ADcontador[x].nombre + ' no tiene definido un Vector Energético ')
+                    return updateContadores();
+                }
+                texto += 'TIPO_COMBUSTIBLE = ' + vectorEnergetico + '\r\n';
+                texto += 'NUM_DEMANDAS = 1\r\n';
+                texto += 'SERVICIOS = (' + (parseInt(ADcontador[x].tipo) + 1) + ')\r\n';
+                for (var y = 0; y &lt; ADconsumo.length; y++)
+                    if (ADconsumo[y].idcontador == ADcontador[x].id)
+                        if (ADconsumo[y].indice == 1)
+                            anoslectura++;
+                texto += 'ANOS_LECTURA = ' + anoslectura + ' \r\n';
+                if (anoslectura == 0) {
+                    alert('el contador: ' + ADcontador[x].nombre + ' no tiene definido ningún periodo de lectura')
+                    return updateContadores();
+                }
+                anoslectura = 0;
+                for (var z = 0; z &lt; ADconsumo.length; z++) {
+                    if (ADconsumo[z].idcontador == ADcontador[x].id) {
+                        if (ADconsumo[z].indice == 1) {
+                            anoslectura++;
+                            var periodo = ADconsumo[z].periodo;
+                            var arrayMensual = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                            for (var u = 0; u &lt; ADconsumo.length; u++) {
+                                if (ADconsumo[u].idcontador == ADcontador[x].id) {
+                                    if (ADconsumo[u].periodo == periodo) {
+                                        if (ADconsumo[u].tipo == "1") {
+                                            texto += 'ANO_00' + anoslectura + ' = (' + ADconsumo[u].periodo + ', ' + ADconsumo[u].valor + ')\r\n';
+                                        }
+                                        else if (ADconsumo[u].tipo == "2") {
+                                            mesactual++;
+                                            arrayMensual[parseInt(ADconsumo[u].indice) - 1] = ADconsumo[u].valor;
+                                            if (mesactual == 12) {
+                                                texto += 'ANO_00' + anoslectura + ' = (' + ADconsumo[u].periodo + ',' + arrayMensual[0] + ',' + arrayMensual[1] + ',' + arrayMensual[2] + ',' + arrayMensual[3] + ',' + arrayMensual[4] + ',' + arrayMensual[5] + ',' + arrayMensual[6] + ',' + arrayMensual[7] + ',' + arrayMensual[8] + ',' + arrayMensual[9] + ',' + arrayMensual[10] + ',' + arrayMensual[11] + ')\r\n';
+                                                mesactual = 0;
+                                            }
+                                        }
+                                        else if (ADconsumo[u].tipo == "3")
+                                            texto += 'NOMBRE_ARCHIVO = "Horarios_Contador_' + ADcontador[x].id + '.txt"'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            texto += '..\r\n';
+            texto += '------------------------------------------------------------------------------\r\n';
+        }
+        // Igual a calderas ex : ex_calderacondensacion ex_calderabiomasa
+        // Igual a enfriadora ex : ex_mase 
+        for (var y = 0; y &lt; ADequipos.length; y++) 
+        {
+            if (ADequipos[y].nuex == "Existente" &amp;&amp; ADequipos[y].tipo == "4") 
+            {
+                if (ADequipos[y].tipoequipo == "ex_bdcaireagua" 
+                || ADequipos[y].tipoequipo == "ex_bdcaguaagua" 
+                || ADequipos[y].tipoequipo == "ex_perecuperacion" 
+                || ADequipos[y].tipoequipo == "ex_bombadecalor") 
+                {
+                    var contadores = ADequipos[y].idcontador;
+                    var Ac1 = contadores.split("-");
+                    if (Ac1[0] == "" || Ac1[1] == "")
+                    {
+                        alert('ERROR:\r\n Equipo: '+ADequipos[y].nombreequipo+' sin algún contador asociado. ');
+                        OcultarSpinner();
+                        return updateExistente();
+                        
+                    }
+                    switch (ADequipos[y].tipoequipo) {
+                        case "ex_bdcaguaagua":
+                            texto += '"' + ADequipos[y].nombre + '';
+                            texto += '_' + ADequipos[y].nombreequipo + '_1" = EQUIPO\r\n'; 
+                            texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                            texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                            texto += 'TAMANO = ' + ADequipos[y].atr1 + '\r\n';
+                            texto += 'RENDIMIENTO = ' + ADequipos[y].atr2 + '\r\n';
+                            texto += 'NUM_CONTADORES = ' + parseInt(Ac1[0].split(",").length - 1) + '\r\n';
+                            texto += 'CONTADORES = (' + Ac1[0].slice(0, Ac1[0].length - 1) + ')\r\n';
+                            texto = Cerrarseccion(texto);
+                            //parte fria
+                            texto += '"' + ADequipos[y].nombre + '';
+                            texto += '_' + ADequipos[y].nombreequipo + '_2" = EQUIPO\r\n'; 
+                            texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                            texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                            texto += 'TAMANO = ' + ADequipos[y].atr3 + '\r\n';
+                            texto += 'RENDIMIENTO = ' + ADequipos[y].atr4 + '\r\n';
+                            texto += 'NUM_CONTADORES = ' + parseInt(Ac1[1].split(",").length - 1) + '\r\n';
+                            texto += 'CONTADORES = (' + Ac1[1].slice(0, Ac1[1].length - 1) + ')\r\n';
+                            break;
+                        case "ex_bdcaireagua":
+                        case "ex_bombadecalor":
+                            var Abus = new Array();
+                            for (var bc = 0; bc &lt; ADbusescasos.length; bc++) 
+                            {
+                                var busactual = ADbusescasos[bc];
+                                if (busactual.nuex == "Existente" &amp;&amp; (busactual.nombre == ADequipos[y].busg || busactual.nombre == ADequipos[y].busa))
+                                    Abus.push(busactual.idbus);
+                            }
+                            if (Abus.length == 1) 
+                            {
+                                //Individual
+                                texto += '"' + ADequipos[y].nombre + '';
+                                texto += '_' + ADequipos[y].nombreequipo + '_1" = EQUIPO\r\n'; 
+                                texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                                texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                                texto += 'TAMANO = ' + ADequipos[y].atr1 + '\r\n';
+                                texto += 'RENDIMIENTO = ' + ADequipos[y].atr2 + '\r\n';
+                                texto += 'NUM_CONTADORES = ' + parseInt(Ac1[0].split(",").length - 1) + '\r\n';
+                                texto += 'CONTADORES = (' + Ac1[0].slice(0, Ac1[0].length - 1) + ')\r\n';
+                            }
+                            else {
+                                // //parte caliente
+                                texto += '"' + ADequipos[y].nombre + '';
+                                texto += '_' + ADequipos[y].nombreequipo + '_1" = EQUIPO\r\n'; 
+                                texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                                texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                                texto += 'TAMANO = ' + ADequipos[y].atr1 + '\r\n';
+                                texto += 'RENDIMIENTO = ' + ADequipos[y].atr2 + '\r\n';
+                                texto += 'NUM_CONTADORES = ' + parseInt(Ac1[0].split(",").length - 1) + '\r\n';
+                                texto += 'CONTADORES = (' + Ac1[0].slice(0, Ac1[0].length - 1) + ')\r\n';
+                                texto = Cerrarseccion(texto);
+                                //parte fria
+                                texto += '"' + ADequipos[y].nombre + '';
+                                texto += '_' + ADequipos[y].nombreequipo + '_2" = EQUIPO\r\n'; 
+                                texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                                texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                                texto += 'TAMANO = ' + ADequipos[y].atr3 + '\r\n';
+                                texto += 'RENDIMIENTO = ' + ADequipos[y].atr4 + '\r\n';
+                                texto += 'NUM_CONTADORES = ' + parseInt(Ac1[1].split(",").length - 1) + '\r\n';
+                                texto += 'CONTADORES = (' + Ac1[1].slice(0, Ac1[1].length - 1) + ')\r\n';
+                            }
+                            break;
+                        case "ex_perecuperacion":
+                            // //parte caliente
+                            texto += '"' + ADequipos[y].nombre + '';
+                            texto += '_' + ADequipos[y].nombreequipo + '_1" = EQUIPO\r\n'; 
+                            texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                            texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                            texto += 'TAMANO = ' + ADequipos[y].atr1 + '\r\n';
+                            texto += 'RENDIMIENTO = ' + ADequipos[y].atr2 + '\r\n';
+                            texto += 'NUM_CONTADORES = ' + parseInt(Ac1[0].split(",").length - 1) + '\r\n';
+                            texto += 'CONTADORES = (' + Ac1[0].slice(0, Ac1[0].length - 1) + ')\r\n';
+                            texto = Cerrarseccion(texto);
+                            //parte recuperacion
+                            texto += '"' + ADequipos[y].nombre + '';
+                            texto += '_' + ADequipos[y].nombreequipo + '_2" = EQUIPO\r\n'; 
+                            texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                            texto += 'NUMERO_EQUIPOS = -1\r\n';
+                            texto += 'TAMANO = ' + ADequipos[y].atr3 + '\r\n';
+                            texto += 'RENDIMIENTO = ' + ADequipos[y].atr4 + '\r\n';
+                            texto += 'NUM_CONTADORES = 1\r\n';
+                            texto += 'CONTADORES = (3)\r\n';
+                            break;
+                    }
+                }
+                else 
+                {
+                    texto += '"' + ADequipos[y].nombre + '';
+                    texto += '_' + ADequipos[y].nombreequipo + '" = EQUIPO\r\n';
+                    texto += 'ID_EQUIPO = ' + ADequipos[y].id + '\r\n';
+                    if (ADequipos[y].nombre == "Solar Térmica" 
+                    || ADequipos[y].tipoequipo == "ex_stcaptadorplano" 
+                    || ADequipos[y].tipoequipo == "ex_sttubosvacio")
+                        texto += 'NUMERO_EQUIPOS = -1\r\n';
+                    else
+                        texto += 'NUMERO_EQUIPOS = ' + ADequipos[y].numequiposiguales + '\r\n';
+                    texto += 'TAMANO = ' + ADequipos[y].atr1 + '\r\n';
+                    if (ADequipos[y].nombre == "Interacumulador eléctrico") 
+                    {
+                        texto += 'RENDIMIENTO = 100\r\n';
+                    }
+                    else
+                        texto += 'RENDIMIENTO = ' + ADequipos[y].atr2 + '\r\n';
+                    if (ADequipos[y].nombre == "Solar Térmica" 
+                    || ADequipos[y].tipoequipo == "ex_stcaptadorplano" 
+                    || ADequipos[y].tipoequipo == "ex_sttubosvacio") 
+                    {
+                        var servicios = new Array()
+                        for (var buses = 0; buses &lt; ADbusescasos.length; buses++) 
+                        {
+                            if (ADbusescasos[buses].nombre == ADequipos[y].busa 
+                                &amp;&amp; ADbusescasos[buses].nuex == "Existente") 
+                            {
+                                servicios.push(ADbusescasos[buses].idbus);
+                            }
+                            else if (ADbusescasos[buses].nombre == ADequipos[y].busg 
+                                &amp;&amp; ADbusescasos[buses].nuex == "Existente") 
+                            {
+                                servicios.push(ADbusescasos[buses].idbus);
+                            }
+                        }
+                        texto += 'NUM_CONTADORES = ' + servicios.length + ' \r\n';
+                        texto += 'CONTADORES = (3)\r\n';
+                    }
+                    else 
+                    {
+                        var numContadores = ADequipos[y].idcontador;
+                        var numContadores2 = 0;
+                        if (numContadores.length > 0) 
+                        {
+                            for (var z = 0; z &lt; numContadores.length; z++)
+                                if (numContadores[z] == ",")
+                                    numContadores2++;
+                            numContadores.substring(-1, 1);
+                            numContadores = numContadores.substring(0, numContadores.length - 1);
+                        }
+                        texto += 'NUM_CONTADORES = ' + numContadores2 + ' \r\n';
+                        texto += 'CONTADORES = (' + numContadores + ')\r\n';
+                    }
+                }
+                texto += '..\r\n';
+                texto += '------------------------------------------------------------------------------\r\n';
+            }
+        }
+        //Piscina
+        if (ADpiscina.length != 0) {
+            texto += '"DatosPiscina" = DATOS-PISCINA\r\n';
+            for (var k = 0; k &lt; ADpiscina.length; k++)
+                if (ADpiscina[k].idcaso == idCaso) {
+                    var volumenpiscina = ADpiscina[k].volumen;
+                    var superficiepiscina = ADpiscina[k].superficie;
+                    var largopiscina = ADpiscina[k].longitud;
+                    var ANCHO_PLAYA = ADpiscina[k].anchura;
+                    var AREA_ENVUELTA = ADpiscina[k].areaenvuelta;
+                    var UM_ENVUELTA = ADpiscina[k].umedio;
+                    var norte = ADpiscina[k].norte;
+                    var este = ADpiscina[k].este;
+                    var sur = ADpiscina[k].sur;
+                    var oeste = ADpiscina[k].oeste;
+                    var horizontal = ADpiscina[k].horizontal;
+                    var TEMPCONS_AIRE = ADpiscina[k].tempconaire;
+                    var HUMCONS = ADpiscina[k].conhum;
+                    var TEMPCONS_AGUA = ADpiscina[k].tempconagua;
+                    var PORC_RENAGUA = ADpiscina[k].renovacionagua;
+                    var RENH = ADpiscina[k].renovacionaire;
+                    var DIAINICIO = ADpiscina[k].diainicio;
+                    var MESINICIO = Meses.indexOf(ADpiscina[k].mesinicio) + 1;
+                    var DIAFINAL = ADpiscina[k].diafinal;
+                    var MESFINAL = Meses.indexOf(ADpiscina[k].mesfinal) + 1;
+                }
+            texto += 'VOLUMEN = ' + volumenpiscina + '\r\n';
+            texto += 'SUPERFICIE = ' + superficiepiscina + '\r\n';
+            texto += 'LARGO = ' + largopiscina + '\r\n';
+            texto += 'ANCHO_PLAYA = ' + ANCHO_PLAYA + '\r\n';
+            texto += 'AREA_ENVUELTA = ' + AREA_ENVUELTA + '\r\n';
+            texto += 'UM_ENVUELTA = ' + UM_ENVUELTA + '\r\n';
+            texto += 'PORC_ACRIST = ( ' + norte + ',' + este + ',' + sur + ',' + oeste + ',' + horizontal + ' )\r\n';
+            texto += 'TEMPCONS_AIRE = ' + TEMPCONS_AIRE + '\r\n';
+            texto += 'HUMCONS = ' + HUMCONS + '\r\n';
+            texto += 'TEMPCONS_AGUA = ' + TEMPCONS_AGUA + '\r\n';
+            texto += 'PORC_RENAGUA = ' + PORC_RENAGUA + '\r\n';
+            texto += 'RENH = ' + RENH + '\r\n';
+            texto += 'DIAINICIO = ' + DIAINICIO + '\r\n';
+            texto += 'MESINICIO = ' + MESINICIO + '\r\n';
+            texto += 'DIAFINAL = ' + DIAFINAL + '\r\n';
+            texto += 'MESFINAL = ' + MESFINAL + '\r\n';
+            texto += '..\r\n';
+            texto += '------------------------------------------------------------------------------\r\n';
+        }
+        texto += '.FIN-SECCION\r\n';
+    }
+    //Vehiculo eléctrico si lo hubiera
+    if (checkvehiculoelectrico == 1) {
+        texto += '==============================================================================================\r\n';
+        texto += '.SECCION = VEHICULO-ELECTRICO\r\n';
+        texto += '+--------------------------------------------------------------------------------------------+\r\n';
+        texto += '| Archivo de Definición de VE\r\n';
+        texto += '| (C) Grupo TERMOTECNIA AICIA Universidad de Sevilla, desde 1979                             |\r\n';
+        texto += '+--------------------------------------------------------------------------------------------+\r\n';
+        texto += '"DatosVE" = DATOS-VE\r\n';
+        for (var x = 0; x &lt; ADVE.length; x++) {
+            if (ADVE[x].idcaso == idCaso) {
+                var arrayVE = new Array();
+                var contVE = 0;
+                $.each(ADVE[x], function (index, value) {
+                    if (index != "id" &amp;&amp; index != "idcaso" &amp;&amp; index != "tipoedificio") {
+                        arrayVE[contVE] = value;
+                        contVE++;
+                    }
+                })
+            }
+        }
+        arrayVE[20] = arrayVE[20].split(' ').join('-');
+        arrayVE[16] = arrayVE[16].split(' ').join('-');
+        texto += 'TIPO_EDIFICIO = "' + arrayVE[20].trim() + '"\r\n';
+        texto += 'NUM_CARG_1 = ' + arrayVE[0] + '\r\n';
+        texto += 'NUM_CARG_2 = ' + arrayVE[1] + '\r\n';
+        texto += 'NUM_CARG_3 = ' + arrayVE[2] + '\r\n';
+        texto += 'NUM_CARG_4 = ' + arrayVE[3] + '\r\n';
+        texto += 'FLOTAVE = "' + arrayVE[4].trim() + '"\r\n';
+        texto += 'NUMVE = ' + arrayVE[5] + '\r\n';
+        texto += 'CAPBAT = ' + arrayVE[6] + '\r\n';
+        texto += 'DISTANCIA = ' + arrayVE[7] + '\r\n';
+        texto += 'NUM_CARG_5 = ' + arrayVE[8] + '\r\n';
+        texto += 'NUM_CARG_6  = ' + arrayVE[9] + '\r\n';
+        texto += 'NUM_CARG_7  = ' + arrayVE[10] + '\r\n';
+        texto += 'NUM_CARG_8 = ' + arrayVE[11] + '\r\n';
+        texto += 'INI_OPERACION = ' + arrayVE[12] + '\r\n';
+        texto += 'FIN_OPERACION = ' + arrayVE[13] + '\r\n';
+        texto += 'VARIABILIDAD = ' + arrayVE[14] + '\r\n';
+        arrayVE[15] = arrayVE[15].normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+        texto += 'METODO_PRESENCIA = "' + arrayVE[15].trim() + '"\r\n';
+        if (arrayVE[16] == "")
+            arrayVE[16] = "Favorable"
+        texto += 'OPCION = "' + arrayVE[16].trim() + '"\r\n';
+        texto += 'ANO_DATOS = ' + arrayVE[17] + '\r\n';
+        texto += 'PORC_BEV = ' + arrayVE[18] + '\r\n';
+        texto += 'PORC_PHEV = ' + arrayVE[19] + '\r\n';
+        texto += '..\r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        texto += '.FIN-SECCION\r\n';
+        texto += '==============================================================================================\r\n';
+        texto += '.SECCION = CALENDARIOVE\r\n';
+        if (objedificiosel.usuarioA == false)
+            for (var dtc = 0; dtc &lt; arraydtc.length; dtc++)
+                texto += '' + arraydtc[dtc] + '\r\n'
+        else {
+            for (var indexcal = 0; indexcal &lt; ADdetallescalendario.length; indexcal++)
+                if (objedificiosel.idcalendarioVE == ADdetallescalendario[indexcal].idcalendario) {
+                    if (ADdetallescalendario[indexcal].diatipo == "0")
+                        arraycalvediastipo.push("1");
+                    else
+                        arraycalvediastipo.push(ADdetallescalendario[indexcal].diatipo)
+                }
+            for (var contdiastipoVE = 0; contdiastipoVE &lt; arraycalvediastipo.length; contdiastipoVE++)
+                texto += '' + arraycalvediastipo[contdiastipoVE] + '\r\n';
+            if (arraycalvediastipo[0] == undefined &amp;&amp; objedificiosel.usuarioA == true) {
+                alert('Debe definir un calendario para el Vehículo Eléctrico');
+                OcultarSpinner();
+                return updateVehiculo();
+            }
+        }
+        texto += '..\r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        texto += '.FIN-SECCION\r\n';
+        texto += '==============================================================================================\r\n';
+        texto += '.SECCION = UNIDADESFUNCIONALESVE\r\n';
+        texto += '' + diastipoVE.length + '\r\n';
+        for (var contvediatipo = 0; contvediatipo &lt; diastipoVE.length; contvediatipo++) {
+            var diatipoencontrado = 0
+            var vediatipo = diastipoVE[contvediatipo];
+            for (var contdiastipo = 0; contdiastipo &lt; VEAhorario[1].length; contdiastipo++) // ¿Hay diatipo guardado?
+            {
+                var vediatipoguardado = VEAhorario[1][contdiastipo]
+                if (vediatipo.id_diatipo == vediatipoguardado.id_diatipo) // si lo hay.
+                {
+                    diatipoencontrado = 1;
+                    texto += '' + vediatipoguardado.numeroorden + '\r\n';
+                    texto += '' + vediatipoguardado.valocup + ' ' + vediatipoguardado.valperm + ' ' + vediatipoguardado.valusove + ' ';
+                    for (var valhorario = 0; valhorario &lt; VEAhorario[0].length; valhorario++) {
+                        var valhorarioactual = VEAhorario[0][valhorario];
+                        if (valhorarioactual.id_diatipo == vediatipoguardado.id_diatipo)
+                            texto += '' + valhorarioactual.vh_ocup + ' ';
+                    }
+                    texto += '\r\n';
+                    break;
+                }
+            }
+            if (diatipoencontrado == 0)  // no lo hay
+            {
+                texto += '' + vediatipo.numeroorden + '\r\n';
+                texto += '' + vediatipo.valocup + ' ' + vediatipo.valperm + ' ' + vediatipo.valusove + ' ';
+                for (var valhorario = 0; valhorario &lt; VEhorario.length; valhorario++) {
+                    var valhorarioactual = VEhorario[valhorario];
+                    if (valhorarioactual.id_diatipo == vediatipo.id_diatipo)
+                        texto += '' + valhorarioactual.vh_ocup + ' ';
+                }
+                texto += '\r\n';
+            }
+        }
+        // texto += '6\r\n';
+        // texto += '1\r\n';
+        // texto += '750 300 S 0.5 0.3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2\r\n';
+        // texto += '2\r\n';
+        // texto += '750 100 N 0.3 0.2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5\r\n';
+        // texto += '3\r\n';
+        // texto += '750 200 S 0 0 0 0 0 0.2 0.3 0 0 0 0 0.2 0.3 0 0 0 0 0 0 0 0 0 0 0\r\n';
+        // texto += '4\r\n';
+        // texto += '1000 300 S 0.2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0.5\r\n';
+        // texto += '5\r\n';
+        // texto += '500 200 N 0.4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6\r\n';
+        // texto += '6\r\n';
+        // texto += '300 200 S 0 0.3 0.2 0.2 0.3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\r\n';
+        texto += '..\r\n';
+        texto += '------------------------------------------------------------------------------\r\n';
+        texto += '.FIN-SECCION\r\n';
+    }
+    //texto = texto.replace(/0\r\n/g, "");
+    //Creamos un archivo con los datos
+    $http.post("GenerarArchivoDemandas.php", { 'md5': nombremd5, 'contenido': texto })
+        .success(function (data) {
+            if (data.length &lt; 100) {
+                alert("Archivo generado con éxito");
+                OcultarSpinner();
+            } else {
+                alert("ERROR: El archivo no se ha generado");
+                OcultarSpinner();
+            }
+            //     $http.post("insertarDatosCaso.php", { 'idcaso': idCaso, 'nombre': "sevilla.dat", 'tipo': 1 })
+            //         .success(function (data, status, headers, config) {
+            //         });
+        })
+        .catch(function (error) {
+            alert('Se ha encontrado el siguiente error:\r\n  ' + error.status + ' ' + error.statusText + '\n : ' + error.data + '');
+            return OcultarSpinner();
+        })
+    document.getElementById("menu").style.display = "none";
+}
+}]);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Tue Jun 30 2020 12:54:57 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

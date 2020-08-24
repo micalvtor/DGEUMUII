@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: CGeometria.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: CGeometria.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code> /**
+
+        *Cargamos la sección de geometría
+
+        * @return  {void}
+
+         */
+CargarGeometria = function ()
+{
+    //Comprobamos que los datos sean correctos
+    for (var x = 0; x &lt; ADcaso.length; x++) 
+    {
+        if (ADcaso[x].nombre == nombreCaso) 
+        {
+            inv = ADcaso[x].clima;
+            periodo = ADcaso[x].periodo;
+            if (inv == "-" || periodo == "-")
+                alert('AVISO : No se ha seleccionado Zona Climática o Periodo de Construcción, no se cargarán los valores por defecto')
+        }
+    }
+    var simpli = "si";
+    for (var x = 0; x &lt; ADcaso.length; x++) 
+    {
+        if (ADcaso[x].id == idCaso) 
+        {
+            simpli = ADcaso[x].consim;
+        }
+    }
+    var usuarioA = false;
+    for (var x = 0; x &lt; ADusuarios.length; x++) 
+    {
+        if (parseInt(ADusuarios[x].id) == usuario &amp;&amp; ADusuarios[x].ua == "si") 
+        {
+            usuarioA = true;
+        }
+    }
+    var UFGeometria = 1;
+    //adaptamos la pantalla
+    document.getElementById("imagenes").style.display = "flex";
+    document.getElementById("contenido").style.display = "initial";
+    document.getElementById("menu").style = "background-color: none;display:none";
+    if (simpli == "si") {
+        if (ADufcaso.length > 0) {
+            document.getElementById("esquema2").style = $(document.getElementById("body")).width().style = 'margin-left:22%;';
+            var oTabla = document.querySelector("#geometria");
+            var oCeldas = oTabla.getElementsByTagName("td");
+            for (var i = 0; i &lt; oCeldas.length; i++) {
+                oCeldas[i].addEventListener("keydown", writingCapEnter);
+            }
+            if (ADufcaso.length > 0) {
+                for (var x = 0; x &lt; ADufcaso.length; x++) {
+                    if (ADufcaso[x].idcaso == idCaso) {
+                        updateDatosGeo(ADufcaso[x].id);
+                        break;
+                    }
+                }
+            }
+            document.getElementById('acristalado').style.display = "none";
+            document.getElementById('muro').style.display = "none";
+            document.getElementById('invierno').style.display = "none";
+        } else {
+            alert("No se ha definido correctamente la unidad funcional");
+        }
+    }
+    else
+        GeometriaAvanzada();
+    OcultarSpinner();
+}
+/**
+
+        *Cargamos los datos de la sección de geometría
+        * @param  {string}
+        * @return  {void}
+
+         */
+updateDatosGeo = async function (idUFcaso) 
+{
+    var sec2 = 0;
+    var sec3 = 0;
+    var umuro = 0.0;
+    var ghueco = 0.0;
+    var uhueco = 0.0;
+    var fsinvierno = 0.0;
+    var fsverano = 0.0;
+    var altura = 0.0;
+    var achequiv = 0.0;
+    var inv = "";
+    var periodo = "";
+    var nombre = "";
+    for (var x = 0; x &lt; ADufcaso.length; x++) 
+    {
+        if (ADufcaso[x].id == idUFcaso) 
+        {
+            nombre = ADufcaso[x].nombre;
+        }
+    }
+    //Cargamos la unidad funcional correpsondiente y sus datos
+    document.getElementById('operacionesUF').value = nombre;
+    var edificio = idUFcaso;
+        await $http.post('geometria.php', { 'idcaso': idCaso,'base':1 }).success(function (data) 
+        {
+            ADgeometria = data;
+        })
+        for (var z = 0; z &lt; ADufcaso.length; z++) {
+            if (ADufcaso[z].id == edificio) {
+                document.getElementById('superficie').value = ADufcaso[z].superficie;
+                document.getElementById('geometria').rows[1].cells[1].innerHTML = ADufcaso[z].superficie;
+                document.getElementById('geometria').rows[2].cells[1].innerHTML = ADufcaso[z].superficie;
+            }
+        }
+        for (var x = 1; x &lt; document.getElementById('geometria').rows.length; x++) {
+            for (var y = 1; y &lt; document.getElementById('geometria').rows[0].cells.length; y++) {
+                document.getElementById('geometria').rows[x].cells[y].innerHTML = 0;
+            }
+        }
+        for (var i = 0; i &lt; document.getElementById('geometria').rows[0].cells.length; i++) {
+            if (document.getElementById('geometria').rows[0].cells[i].innerHTML == "u Muro(W/m2k)") {
+                sec2 = i;
+            }
+            if (document.getElementById('geometria').rows[0].cells[i].innerHTML == "F.S. Invierno") {
+                sec3 = i;
+            }
+        }
+        for (var x = 0; x &lt; ADcaso.length; x++) {
+            if (ADcaso[x].nombre == nombreCaso) {
+                inv = ADcaso[x].clima;
+                periodo = ADcaso[x].periodo;
+                inv = inv[0];
+                altura = ADcaso[x].altura;
+                if (inv == "a") {
+                    inv = "A";
+                }
+                switch (periodo) {
+                    case "Anterior a 1900":
+                        periodo = "1";
+                        break;
+                    case "1900 - 1940":
+                        periodo = "2";
+                        break;
+                    case "1940 - 1960":
+                        periodo = "3";
+                        break;
+                    case "1960 - 1979":
+                        periodo = "4";
+                        break;
+                    case "1979 - 2006":
+                        periodo = "5";
+                        break;
+                    case "2006 - 2013":
+                        periodo = "6";
+                        break;
+                    case "Posterior a 2013":
+                        periodo = "7";
+                        break;
+                }
+            }
+        }
+        //Asignamos los valores de datos de construcción
+        for (var i = 0; i &lt; ADcons.length; i++) {
+            if (ADcons[i].zona_inv == inv &amp;&amp; ADcons[i].periodo == periodo) {
+                document.getElementById('muro2').value = ADcons[i].um;
+                document.getElementById('usuelo').value = ADcons[i].us;
+                document.getElementById('ucubierta').value = ADcons[i].uc;
+                document.getElementById('hueco').value = ADcons[i].uv;
+                document.getElementById('ghueco').value = ADcons[i].gv;
+                if (sec2 != 0) {
+                    document.getElementById('geometria').rows[1].cells[sec2].innerHTML = ADcons[i].uc;
+                    document.getElementById('geometria').rows[2].cells[sec2].innerHTML = ADcons[i].us;
+                    for (var j = 1; j &lt; document.getElementById('geometria').rows.length; j++) {
+                        if (j > 2) {
+                            document.getElementById('geometria').rows[j].cells[sec2].innerHTML = ADcons[i].um;
+                        }
+                        document.getElementById('geometria').rows[j].cells[sec2 + 1].innerHTML = ADcons[i].uv;
+                        document.getElementById('geometria').rows[j].cells[sec2 + 2].innerHTML = ADcons[i].gv;
+                    }
+                }
+            }
+        }
+        //Cargamos los datos en función de la orientación
+        for (var x = 0; x &lt; ADgeometria.length; x++) {
+            if (ADgeometria[x].idcaso == idCaso &amp;&amp; ADgeometria[x].iduf == edificio) {
+                document.getElementById('ACH').innerHTML = ADgeometria[x].achequiv;
+                switch (ADgeometria[x].orientacion) {
+                    case "Cubierta":
+                        document.getElementById('geometria').rows[1].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[1].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[1].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[1].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[1].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[1].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[1].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        achequiv = parseFloat(ADgeometria[x].achequiv);
+                        break;
+                    case "Suelo":
+                        document.getElementById('geometria').rows[2].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[2].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[2].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[2].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[2].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[2].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[2].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "N":
+                        document.getElementById('geometria').rows[3].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[3].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[3].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[3].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[3].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[3].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[3].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "NE":
+                        document.getElementById('geometria').rows[4].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[4].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[4].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[4].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[4].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[4].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[4].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "E":
+                        document.getElementById('geometria').rows[5].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[5].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[5].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[5].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[5].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[5].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[5].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "SE":
+                        document.getElementById('geometria').rows[6].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[6].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[6].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[6].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[6].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[6].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[6].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "S":
+                        document.getElementById('geometria').rows[7].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[7].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[7].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[7].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[7].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[7].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[7].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "SO":
+                        document.getElementById('geometria').rows[8].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[8].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[8].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[8].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[8].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[8].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[8].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "O":
+                        document.getElementById('geometria').rows[9].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[9].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[9].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[9].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[9].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[9].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[9].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                    case "NO":
+                        document.getElementById('geometria').rows[10].cells[1].innerHTML = ADgeometria[x].longitud;
+                        if (document.getElementById('seccion1').checked == true) {
+                            document.getElementById('geometria').rows[10].cells[2].innerHTML = ADgeometria[x].porcenacristalado;
+                        }
+                        if (sec2 != 0) {
+                            document.getElementById('geometria').rows[10].cells[sec2].innerHTML = ADgeometria[x].umuro;
+                            document.getElementById('geometria').rows[10].cells[sec2 + 1].innerHTML = ADgeometria[x].uhueco;
+                            document.getElementById('geometria').rows[10].cells[sec2 + 2].innerHTML = ADgeometria[x].ghueco;
+                        }
+                        if (sec3 != 0) {
+                            document.getElementById('geometria').rows[10].cells[sec3].innerHTML = ADgeometria[x].fsinvierno;
+                            document.getElementById('geometria').rows[10].cells[sec3 + 1].innerHTML = ADgeometria[x].fsverano;
+                        }
+                        acristalado += parseFloat(ADgeometria[x].porcenacristalado);
+                        umuro += parseFloat(ADgeometria[x].umuro);
+                        uhueco += parseFloat(ADgeometria[x].uhueco);
+                        ghueco += parseFloat(ADgeometria[x].ghueco);
+                        fsinvierno += parseFloat(ADgeometria[x].fsinvierno);
+                        fsverano += parseFloat(ADgeometria[x].fsverano);
+                        break;
+                }
+            }
+        }
+        var contAcr = 0;
+        var contUm = 0;
+        var contFs = 0;
+        for (var i = 1; i &lt; ADgeometria.length; i++) {
+            if (ADgeometria[0].porcenacristalado == ADgeometria[i].porcenacristalado) {
+                contAcr++;
+            }
+            if (ADgeometria[0].umuro == ADgeometria[i].umuro) {
+                contUm++;
+            }
+            if (ADgeometria[0].fsinvierno == ADgeometria[i].fsinvierno) {
+                contFs++;
+            }
+        }
+        document.getElementById('altura').value = altura;
+        document.getElementById('ACH').value = achequiv;
+        if (contAcr == 9) {
+            document.getElementById('acristalado2').value = "15";
+        }
+        if (contFs == 9) {
+            document.getElementById('invierno2').value = "1";
+            document.getElementById('verano').value = "0.5";
+        }
+        if (edificio == "0") {
+            document.getElementById('seccion1').disabled = true;
+            document.getElementById('seccion2').disabled = true;
+            document.getElementById('seccion3').disabled = true;
+        } else {
+            document.getElementById('seccion1').disabled = false;
+            document.getElementById('seccion2').disabled = false;
+            document.getElementById('seccion3').disabled = false;
+        }
+} 
+/**
+
+        *Guardamos los datos de la sección de geometría
+        * @return  {void}
+
+         */  
+guardarGeometria = function ()
+{
+    MostrarSpinner();
+    var sec2 = 0;
+    var sec3 = 0;
+    var acr = 0;
+    var fsV = 0;
+    var fsI = 0;
+    var umu = 0;
+    var uhu = 0;
+    var ghu = 0;
+    var superficie = 0;
+    var superficie2 = 0;
+    var todoCorrecto = true;
+    var usuarioA = false;
+    for (var x = 0; x &lt; ADusuarios.length; x++) {
+        if (parseInt(ADusuarios[x].id) == usuario &amp;&amp; ADusuarios[x].ua == "si") {
+            usuarioA = true;
+        }
+    }
+    if (document.getElementById('operacionesUF').innerHTML.length > 0) {
+        var edificio = document.getElementById('operacionesUF').innerHTML;
+        for (var x = 0; x &lt; ADufcaso.length; x++) {
+            if (ADufcaso[x].iduf == edificio) {
+                edificio = ADufcaso[x].id;
+            }
+        }
+    } else {
+        var edificio = document.getElementById('operacionesUF').value;
+        for (var x = 0; x &lt; ADufcaso.length; x++) {
+            if (ADufcaso[x].nombre == edificio) {
+                edificio = ADufcaso[x].id;
+            }
+        }
+    }
+    superficie = document.getElementById('superficie').value;
+    for (var i = 0; i &lt; document.getElementById('geometria').rows[0].cells.length; i++) {
+        if (document.getElementById('geometria').rows[0].cells[i].innerHTML == "u Muro(W/m2k)") {
+            sec2 = i;
+        }
+        if (document.getElementById('geometria').rows[0].cells[i].innerHTML == "F.S. Invierno") {
+            sec3 = i;
+        }
+    }
+    //Comprobamos que los valores sean correctos
+    if (/^[0-9]*$/.test(document.getElementById('ACH').value) == false) {
+        alert('ERROR: El campo ACH con valores no numéricos');
+        todoCorrecto = false;
+        return OcultarSpinner();
+    }
+    if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('superficie').value) == false) {
+        alert('ERROR: El campo superficie con valores no numéricos');
+        todoCorrecto = false;
+        return OcultarSpinner();
+    }
+    if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('altura').value) == false) {
+        alert('ERROR: El campo altura con valores no numéricos');
+        todoCorrecto = false;
+        return OcultarSpinner();
+    }
+    if (document.getElementById('seccion2').checked == false) {
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('muro2').value) == false) {
+            alert('ERROR: El campo Muro(W/m2k) con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('hueco').value) == false) {
+            alert('ERROR: El campo u Ventana(W/m2k) con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('ghueco').value) == false) {
+            alert('ERROR: El campo g Ventana con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+    }
+    if (document.getElementById('seccion1').checked == false) {
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('muro2').value) == false) {
+            alert('ERROR: El campo acristalado con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+    }
+    if (document.getElementById('seccion3').checked == false) {
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('verano').value) == false) {
+            alert('ERROR: El campo F.S. Verano con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+        if (/^(?:[0-1](?:\.0)?|[1](?:\.[0])?|0?\.[1-9][0-9]*)$/.test(document.getElementById('verano').value) == false) {
+            alert('ERROR: El campo F.S. Verano debe tener valor comprendido entre 0 y 1');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+        if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('invierno2').value) == false) {
+            alert('ERROR: El campo F.S. Invierno con valores no numéricos');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+        if (/^(?:[0-1](?:\.0)?|[1](?:\.[0])?|0?\.[1-9][0-9]*)$/.test(document.getElementById('invierno2').value) == false) {
+            alert('ERROR: El campo F.S. Invierno debe tener valor comprendido entre 0 y 1');
+            todoCorrecto = false;
+            return OcultarSpinner();
+        }
+    }
+    for (var x = 1; x &lt; document.getElementById('geometria').rows.length; x++) {
+        for (var y = 1; y &lt; document.getElementById('geometria').rows[x].cells.length; y++) {
+            if (/^[0-9]+([.][0-9]+)?$/.test(document.getElementById('geometria').rows[x].cells[y].innerHTML) == false) {
+                alert('ERROR: El campo ' + document.getElementById('geometria').rows[0].cells[y].innerHTML + ' de la orientación' + document.getElementById('geometria').rows[x].cells[0].innerHTML + ' con valores no numéricos');
+                todoCorrecto = false;
+                return OcultarSpinner();
+            }
+            if (y == 6) {
+                if (/^(?:[0-1](?:\.0)?|[1](?:\.[0])?|0?\.[1-9][0-9]*)$/.test(document.getElementById('geometria').rows[x].cells[sec3].innerHTML) == false) {
+                    alert('ERROR: El campo ' + document.getElementById('geometria').rows[0].cells[y].innerHTML + ' de la orientación' + document.getElementById('geometria').rows[x].cells[0].innerHTML + ' con valores no comprendidos entre 0.00 - 1.00');
+                    todoCorrecto = false;
+                    return OcultarSpinner();
+                }
+            }
+            if (y == 7) {
+                if (/^(?:[0-1](?:\.0)?|[1](?:\.[0])?|0?\.[1-9][0-9]*)$/.test(document.getElementById('geometria').rows[x].cells[sec3 + 1].innerHTML) == false) {
+                    alert('ERROR: El campo ' + document.getElementById('geometria').rows[0].cells[y].innerHTML + ' de la orientación' + document.getElementById('geometria').rows[x].cells[0].innerHTML + ' con valores no comprendidos entre 0.00 - 1.00');
+                    todoCorrecto = false;
+                    return OcultarSpinner();
+                }
+            }
+        }
+    }
+    //Insertamos los valores si son correctos
+    if (todoCorrecto == true) {
+        
+        if (edificio != "0") {
+            
+            if (document.getElementById('geometria').rows[1].cells[1].innerHTML == document.getElementById('geometria').rows[2].cells[1].innerHTML) {
+                //Borramos los antiguos y actualizamos la tablas
+                $http.post("borrarGeometria.php", { 'idcaso': idCaso, 'iduf': edificio,'base':1 }).success(function (data) {
+                    console.log(data);
+
+                    $http.post('geometria.php', { 'idcaso': idCaso,'base':1 }).success(function (data) {
+                        ADgeometria = data;
+                        ADgeometria = data;
+                        //Comprobamos si debemos coger el valor de los input o las tablas
+                        document.getElementById('botonGeometria').disabled = true;
+                        for (var x = 1; x &lt; document.getElementById('geometria').rows.length; x++) {
+                            if (document.getElementById('seccion1').checked == false) {
+                                if (document.getElementById('geometria').rows[x].cells[0].innerHTML != "Cubierta" &amp;&amp; document.getElementById('geometria').rows[x].cells[0].innerHTML != "Suelo") {
+                                    acr = document.getElementById('acristalado2').value;
+                                }
+                            } else {
+                                acr = parseFloat(document.getElementById('geometria').rows[x].cells[2].innerHTML);
+                            }
+                            if (document.getElementById('geometria').rows[x].cells[1].innerHTML == superficie &amp;&amp; (x == 1 || x == 2)) {
+                                superficie2 = superficie;
+                            } else {
+                                superficie2 = document.getElementById('geometria').rows[x].cells[1].innerHTML;
+                            }
+                            if (document.getElementById('seccion2').checked == false) {
+                                if (document.getElementById('geometria').rows[x].cells[0].innerHTML == "Cubierta") {
+                                    umu = document.getElementById('ucubierta').value;
+                                } else if (document.getElementById('geometria').rows[x].cells[0].innerHTML == "Suelo") {
+                                    umu = document.getElementById('usuelo').value;
+                                } else {
+                                    umu = document.getElementById('muro2').value;
+                                }
+                                uhu = document.getElementById('hueco').value;
+                                ghu = document.getElementById('ghueco').value;
+                            } else {
+                                if (document.getElementById('geometria').rows[x].cells[0].innerHTML == "Cubierta") {
+                                    umu = parseFloat(document.getElementById('geometria').rows[x].cells[sec2].innerHTML);
+                                } else if (document.getElementById('geometria').rows[x].cells[0].innerHTML == "Suelo") {
+                                    umu = parseFloat(document.getElementById('geometria').rows[x].cells[sec2].innerHTML);
+                                } else {
+                                    umu = parseFloat(document.getElementById('geometria').rows[x].cells[sec2].innerHTML);
+                                }
+                                uhu = parseFloat(document.getElementById('geometria').rows[x].cells[sec2 + 1].innerHTML);
+                                ghu = parseFloat(document.getElementById('geometria').rows[x].cells[sec2 + 2].innerHTML);
+                            }
+                            if (document.getElementById('seccion3').checked == false) {
+                                fsV = document.getElementById('verano').value;
+                                fsI = document.getElementById('invierno2').value;
+                            } else {
+                                fsI = parseFloat(document.getElementById('geometria').rows[x].cells[sec3].innerHTML);
+                                fsV = parseFloat(document.getElementById('geometria').rows[x].cells[sec3 + 1].innerHTML);
+                            }
+                            //Insertamos los nuevos datos
+                            $http.post("insertarGeometria.php", {
+                                'idcaso': idCaso, 'iduf': edificio, 'descripcion': edificio, 'superficie': document.getElementById('superficie').value, 'altura': document.getElementById('altura').value,
+                                'multiplicador': 1, 'achequiv': document.getElementById('ACH').value, 'orientacion': document.getElementById('geometria').rows[x].cells[0].innerHTML,
+                                'acristalado': acr, 'umuro': umu, 'uhueco': uhu, 'ghueco': ghu, 'fsinvierno': fsI, 'fsverano': fsV, 'fsconsombramovil': 0, 'ret': 0,
+                                'vold': 0, 'voll': 0, 'numOrden': 0, 'longitud': superficie2, 'nombreuf': 0, 'slatd': 0, 'slatl': 0, 'h1': 0, 'h2': 0, 'h3': 0, 'h4': 0, 'l1': 0, 'l2': 0, 'l3': 0, 'l4': 0,'base':1
+                            }).success(function (data) {
+                                console.log(data);
+                            });
+                        }
+                        alert("Datos guardados correctamente");
+                        OcultarSpinner();
+                        vaciarcontenido();
+                    });
+                });
+            } else {
+                alert("ERROR: La superficie del suelo debe ser la misma que la cubierta");
+                return OcultarSpinner();
+            }
+        }
+    }
+}
+$http = angular.injector(["ng"]).get("$http");
+CargarGeometria();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#CargarGeometria">CargarGeometria</a></li><li><a href="global.html#guardarGeometria">guardarGeometria</a></li><li><a href="global.html#updateDatosGeo">updateDatosGeo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Wed Jul 01 2020 08:35:11 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

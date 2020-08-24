@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Hvariacionestacional.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Hvariacionestacional.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>angular.module('myApp').service('Hvariacionestacional', ['$http', function ($http)
+{
+      /**
+
+        *Cargamos Variacion Estacional del uso
+        * @param  {string,boolean}
+        * @return  {void}
+
+         */
+        this.updateVariacionEstacional = function () {
+            var existeVariacion = false;
+            //Cargamos la sección de variación estacional
+            var menu = "";
+            var iduf = "";
+            var nombreuf = "";
+            if (ADufcaso.length > 1 &amp;&amp; ADufcaso.length != 0) {
+                nombreuf = document.getElementById('operacionesUF').value;
+                for (var x = 0; x &lt; ADufcaso.length; x++) {
+                    if (ADufcaso[x].idcaso == idCaso &amp;&amp; ADufcaso[x].nombre == nombreuf) {
+                        iduf = ADufcaso[x].id;
+                    }
+                }
+            } else {
+                nombreuf = document.getElementById('operacionesUF').innerHTML;
+                for (var x = 0; x &lt; ADufcaso.length; x++) {
+                    if (ADufcaso[x].idcaso == idCaso &amp;&amp; ADufcaso[x].iduf == nombreuf) {
+                        iduf = ADufcaso[x].id;
+                    }
+                }
+            }
+            vaciarcontenido();
+            MostrarSpinner();
+
+            var meses = ['Enero', 'Feb', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Sept', 'Oct', 'Nov', 'Dic'];
+            $http.post('variacionEstacional.php', { 'idcaso': idCaso,'base':1 }).success(function (data) {
+                ADvariacionestacional = data;
+                for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                    if (ADvariacionestacional[x].iduf == iduf) {
+                        existeVariacion = true;
+                    }
+                }
+                menu += "&lt;label style='margin-top: 50px;display: block; text-align:center'>&lt;h3>% Mensual&lt;/h3>&lt;/label>";
+                menu += "&lt;div class='table-responsive' style='border:0;'>";
+                menu += "&lt;table id='variacionestacional' class='table-bordered' style='width: 100%;'>";
+                menu += "&lt;tr>";
+                menu += "&lt;th style='visibility: hidden;'>&lt;/th>";
+                for (var mes = 0; mes &lt;= 11; mes++)
+                    menu += "&lt;th style='padding:5px;width:8.33%'>" + meses[mes] + "&lt;/th>";
+                menu += "&lt;/tr>";
+                menu += "&lt;tr>";
+                menu += "&lt;th padding:10px;>Ocupación&lt;/th>";
+                for (var mes = 1; mes &lt;= 12; mes++) {
+                    if (existeVariacion == true) {
+                        for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                            if (iduf == ADvariacionestacional[x].iduf &amp;&amp; ADvariacionestacional[x].idmes == mes) {
+                                menu += "&lt;td contenteditable='true'>" + ADvariacionestacional[x].valocup + "&lt;/td>";
+                                break;
+                            }
+                        }
+                    } else {
+                        menu += "&lt;td contenteditable='true'>100&lt;/td>";
+                    }
+                }
+                menu += "&lt;/tr>"
+                menu += "&lt;tr>";
+                menu += "&lt;th>Iluminación / Equipos &lt;/th>";
+                for (var mes = 1; mes &lt;= 12; mes++) {
+                    if (existeVariacion == true) {
+                        for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                            if (iduf == ADvariacionestacional[x].iduf &amp;&amp; ADvariacionestacional[x].idmes == mes) {
+                                menu += "&lt;td contenteditable='true'>" + ADvariacionestacional[x].valilumequip + "&lt;/td>";
+                                break;
+                            }
+                        }
+                    } else {
+                        menu += "&lt;td contenteditable='true'>100&lt;/td>";
+                    }
+                }
+                menu += "&lt;/tr>"
+                menu += "&lt;tr>";
+                menu += "&lt;th>ACS&lt;/th>";
+                for (var mes = 1; mes &lt;= 12; mes++) {
+                    if (existeVariacion == true) {
+                        for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                            if (iduf == ADvariacionestacional[x].iduf &amp;&amp; ADvariacionestacional[x].idmes == mes) {
+                                menu += "&lt;td contenteditable='true'>" + ADvariacionestacional[x].valacs + "&lt;/td>";
+                                break;
+                            }
+                        }
+                    } else {
+                        menu += "&lt;td contenteditable='true'>100&lt;/td>";
+                    }
+                }
+                menu += "&lt;/tr>"
+                menu += "&lt;tr>";
+                menu += "&lt;th>Otros&lt;/th>";
+                for (var mes = 1; mes &lt;= 12; mes++) {
+                    if (existeVariacion == true) {
+                        for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                            if (iduf == ADvariacionestacional[x].iduf &amp;&amp; ADvariacionestacional[x].idmes == mes) {
+                                menu += "&lt;td contenteditable='true'>" + ADvariacionestacional[x].valotros + "&lt;/td>";
+                                break;
+                            }
+                        }
+                    } else {
+                        menu += "&lt;td contenteditable='true'>100&lt;/td>";
+                    }
+                }
+                menu += "&lt;/tr>";
+                menu += "&lt;/table>";
+                menu += "&lt;div>";
+                menu += "&lt;button class='btnMenu' style='margin-top:20px; background-color:orange;' type='button' onclick='guardarVariacionEstacional(" + iduf + ")'>Guardar&lt;/button>";
+                menu += "&lt;button class='btnMenu' style='margin-top:20px;margin-left: 10px;' type='button' onclick='updateOperaciones()'>Volver&lt;/button>";
+                menu += "&lt;/div>";
+                OcultarSpinner();
+                document.getElementById("contenido").innerHTML = menu;
+                oTabla = document.querySelector("#variacionestacional");
+                oCeldas = oTabla.getElementsByTagName("td");
+                for (var i = 0; i &lt; oCeldas.length; i++)
+                    oCeldas[i].addEventListener("keydown", writingCapEnter2);
+            });
+        }
+        /**
+
+        *Guardamos los datos de  Variacion Estacional del uso
+        * @param  {string,boolean}
+        * @return  {void}
+
+         */
+        guardarVariacionEstacional = function (unidadFuncional) {
+            MostrarSpinner();
+            var existeVariacion = false;
+            var todoCorrecto = true;
+            //Comprobamos que los datos introducidos son correctos
+            for (var x = 1; x &lt; document.getElementById('variacionestacional').rows.length; x++) {
+                for (var y = 1; y &lt; document.getElementById('variacionestacional').rows[x].cells.length; y++) {
+                    if (/^[0-9]+([,.][0-9]+)?$/.test(document.getElementById('variacionestacional').rows[x].cells[y].innerHTML) == false) {
+                        alert('ERROR: El campo ' + document.getElementById('variacionestacional').rows[0].cells[y].innerHTML + ' de ' + document.getElementById('variacionestacional').rows[x].cells[0].innerHTML + ' con valores no numéricos');
+                        todoCorrecto = false;
+                        OcultarSpinner();
+                    }
+                    if (parseInt(document.getElementById('variacionestacional').rows[x].cells[y].innerHTML) > 100) {
+                        alert('ERROR: El campo ' + document.getElementById('variacionestacional').rows[0].cells[y].innerHTML + ' de ' + document.getElementById('variacionestacional').rows[x].cells[0].innerHTML + ' no puede ser mayor que 100');
+                        todoCorrecto = false;
+                        OcultarSpinner();
+                    }
+                }
+            }
+            for (var x = 0; x &lt; ADvariacionestacional.length; x++) {
+                if (ADvariacionestacional[x].iduf == unidadFuncional) {
+                    existeVariacion = true;
+                }
+            }
+            if (todoCorrecto == true) {
+                //Introducimos los datos
+                if (existeVariacion == true) {
+                    for (var x = 0; x &lt; 12; x++) {
+                        $http.post("updateVariacionEstacional.php", {
+                            'iduf': unidadFuncional,
+                            'idcaso': idCaso,
+                            'idmes': (x + 1),
+                            'valocup': parseInt(document.getElementById("variacionestacional").rows[1].cells[x + 1].innerHTML),
+                            'valilumequip': parseInt(document.getElementById("variacionestacional").rows[2].cells[x + 1].innerHTML),
+                            'valacs': parseInt(document.getElementById("variacionestacional").rows[3].cells[x + 1].innerHTML),
+                            'valotros': parseInt(document.getElementById("variacionestacional").rows[4].cells[x + 1].innerHTML),'base':1
+                        }).success(function (data, status, headers, config) {
+                        });
+                    }
+                    alert('Datos Guardados Correctamente');
+                    updateOperaciones();
+                } else {
+                    for (var x = 0; x &lt; 12; x++) {
+                        $http.post("insertarVariacionEstacional.php", {
+                            'idcaso': idCaso, 'iduf': unidadFuncional,
+                            'idmes': (x + 1),
+                            'valocup': parseInt(document.getElementById("variacionestacional").rows[1].cells[x + 1].innerHTML),
+                            'valilumequip': parseInt(document.getElementById("variacionestacional").rows[2].cells[x + 1].innerHTML),
+                            'valacs': parseInt(document.getElementById("variacionestacional").rows[3].cells[x + 1].innerHTML),
+                            'valotros': parseInt(document.getElementById("variacionestacional").rows[4].cells[x + 1].innerHTML),'base':1
+                        }).success(function (data, status, headers, config) {
+                        });
+                    }
+                    alert('Datos Guardados Correctamente');
+                    updateOperaciones();
+                }
+            }
+
+        }
+}]);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#updateVariacionEstacional">updateVariacionEstacional</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Tue Jun 30 2020 13:14:30 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

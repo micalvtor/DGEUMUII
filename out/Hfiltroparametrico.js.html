@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Hfiltroparametrico.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Hfiltroparametrico.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code> /**
+
+ * @fileoverview Funciones parametrizado
+
+ *
+
+ * @version                               2.2
+
+ *
+
+ * @author                 Manuel Mallén Rodríguez &lt;gacetuplex@gmail.com>
+
+ * @copyright           Termotecnia
+
+
+        */
+angular.module('myApp').service('Hparametrico', ['$http', function ($http)
+{
+    let Alabels = [];
+    let nombreequipo = '';
+    let propertys = [];
+    let nombre = "";
+    let tipoequipo = "";
+    /**
+
+                *Cogemos los nombre de las variables
+
+                * @param  {integer}
+                * @return  {void}
+
+                */
+this.Getlabels = function(label,equipo,username,type)
+{
+    //Si tiene nombre lo coge
+    if (!propertys.includes(label))
+        propertys.push(label);
+    const labelmin = "min "+label, labelmax = "max "+label;
+    Alabels.push(labelmin,labelmax)
+    nombreequipo = equipo;
+    nombre = username;
+    tipoequipo = type;
+}
+/**
+
+                *Coge las variables con rango
+
+                * @param  {integer}
+                * @return  {void}
+
+                */
+this.getelementos = function()
+{
+    //Si tiene mínimo o máximo lo coge
+        let array = [];
+        for (var a = 0; a &lt; $("input[id*='min ']").length ;a++)
+            array.push($("input[id*='min ']")[a]);
+        for (var a = 0; a &lt; $("input[id*='max ']").length ;a++)
+            array.push($("input[id*='max ']")[a]);
+        return array;
+}
+this.applyfilter = function(definido)
+{
+    filtrado = function()
+    {
+        /**
+
+                *Creamos los filtros de valores mínimos y máximos
+
+                * @param  {integer}
+                * @return  {void}
+
+                */
+        filtrarrangos = function(elements)
+        {
+
+            let minimos = $.grep(elements, function(e){ return e.id.includes('min '); });
+            minimos = minimos.map(minimos => parseFloat(minimos.value));
+            let maximos = $.grep(elements, function(e){ return e.id.includes('max '); });
+            maximos = maximos.map(maximos => parseFloat(maximos.value));
+            let Aout = [];
+            let Avalores = [];
+            let cont = maximos.length;
+            for (var i = 0; i &lt; Oequipo[nombreequipo].length; i++)
+            {
+               for (var p = 0; p &lt; propertys.length; p++)
+               {
+                   for (let key in Oequipo[nombreequipo][i]) 
+                   {
+                       if (key == propertys[p])  //MAPEO?
+                       {
+                            Avalores.push(Oequipo[nombreequipo][i][key]);
+                            break;
+                       }
+                   }
+               }
+               for (var a = 0; a &lt; Avalores.length; a++)
+               {
+                    const valoractual = parseFloat(Avalores[a]);
+                    const valormaximo = maximos[a];
+                    const valorminimo = minimos[a];
+                    if (valoractual >= valorminimo &amp;&amp; valoractual &lt;= valormaximo &amp;&amp; !Aout.includes(Oequipo[nombreequipo][i]))
+                        cont--;
+               }
+               if (cont == 0)
+               {
+                let equipoactual = Object.assign({}, Oequipo[nombreequipo][i], { nombreequipo: nombreequipo , nombre:nombre, tipoequipo:tipoequipo});
+                Aout.push(equipoactual); 
+               }
+                Avalores = [];
+               cont = maximos.length;
+            }
+            Aout = filtrarselectores(Aout);
+            return Aout;
+        }
+        /**
+
+                *Coge las variables con rango
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+        getelements = function()
+        {
+            let array = [];
+            //Si tiene mínimo o máximo lo coge
+            for (var a = 0; a &lt; $("input[id*='min ']").length ;a++)
+                array.push($("input[id*='min ']")[a]);
+            for (var a = 0; a &lt; $("input[id*='max ']").length ;a++)
+                array.push($("input[id*='max ']")[a]);
+            return array;
+        }
+        getvaluesminmax = function(Aequipo,elements)
+        {
+            
+            /**
+
+                *Ordena los elementos de mayor a menor
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+            ordenamenormayor = function (a,b)
+            {
+                return a - b;
+            }
+                let Aout = [], Amin = [], Amax = [];
+                let resultado = filtrarselectores(Aequipo);
+                for (var e = 0; e &lt; elements.length / 2; e++)
+                {
+                    //Elimina espacios y los ordena con la técnica map
+                    let str = elements[e].id;
+                    str = str.substring(str.indexOf(" ")+1,str.lastIndexOf(""));
+                    let prueba = resultado.map(resultado => parseFloat(resultado[str]));
+                    prueba.sort(ordenamenormayor);
+                    Amin.push(prueba[0]);
+                    Amax.push(prueba[prueba.length-1]);
+                }
+                Aout = Amin.concat(Amax);
+                return Aout;      
+        }
+        filtrarselectores = function(Ain) 
+        { 
+            // Herramientas útiles
+               concatsubarrays = function (arr)
+            {
+                if (Array.isArray(arr))
+                {
+                    let resultado = [].concat.apply([], arr);
+                    return resultado;
+                }
+                else return arr;
+            }
+            /**
+
+                *Elimina espacios vacíos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+            quitarelementosobrante = function (arr)
+            {
+                getelementorepetido = function (arr)
+                {
+                    let res = arr.filter((a, i, aa) => aa.indexOf(a) === i &amp;&amp; aa.lastIndexOf(a) !== i);
+                    return res;
+                }
+                let res = Afiltro[Afiltro.length-1].concat(Afiltro[Afiltro.length-2]); 
+                res = getelementorepetido(res);
+                return res;
+            }
+            let selectores =  $('#myModalCaracteristicas select')
+            let Afiltro = []
+            for (var s = 0 ; s &lt; selectores.length; s++)
+            {
+                if (selectores[s].value !== "0")
+                {
+                    let str = selectores[s].id;
+                    while (str.includes("s") || str.includes("2"))
+                    str = str.slice(0, -1); 
+                    Afiltro.push(Ain.filter( el => el[str] == selectores[s].selectedOptions[0].textContent));
+                    if (Afiltro.length != 0)
+                    var Ain = concatsubarrays(Afiltro);
+                    if (selectores[s].value != 0) 
+                    Afiltro = Afiltro.filter(e => e[str] == selectores[s].selectedOptions[0].textContent);
+                }
+            }
+            if (Afiltro.length == 3 &amp;&amp; Afiltro[Afiltro.length-1].length != 1) 
+            Afiltro[Afiltro.length-1] = quitarelementosobrante(Afiltro);
+            if (Afiltro.length == 0) 
+                return Ain;
+             Afiltro = Afiltro.filter(function (el) {if (el.length != 0)return el;});
+            return Afiltro[Afiltro.length-1];
+        }
+        let oEvento = event || window.event;
+        let oTarget = oEvento.target;
+        let elements = [], rsalida = [];
+        elements = getelements();
+        if (Oequipo[nombreequipo] == undefined)
+        return undefined
+        if (oTarget.nodeName == "SELECT")
+        {
+            let valoresminmax = getvaluesminmax(Oequipo[nombreequipo],elements);
+            if (valoresminmax.length == elements.length)
+                for (var s = 0; s &lt; elements.length ; s++)
+                {   
+                    if (valoresminmax[s] != undefined)
+                    elements[s].value = valoresminmax[s];
+                    if (elements[s].id.includes("min ") &amp;&amp; valoresminmax[s] != undefined )
+                    {
+                        document.getElementById(elements[s].id.substring(elements[s].id.indexOf(" "),elements[s].id.lastIndexOf("")).trim()).value = valoresminmax[s];
+                    }
+                }
+        }
+        rsalida = filtrarrangos(elements)
+        return rsalida;
+    }
+    /**
+
+                *Añade lectores a las teclas
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    addlistener = function()
+    {
+        let Inputsstandar = [];
+        //Filtra los elementos sin rango
+                 for (var i = 0; i &lt;  $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']").length ; i++)
+         Inputsstandar.push( $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']")[i].id);   
+        for (var ss = 0 ; ss &lt; Inputsstandar.length ; ss++)
+        {
+            if (Inputsstandar[ss] !== null)
+            {
+                document.getElementById(Inputsstandar[ss]).addEventListener("change",function(event)
+                {
+                    let numerointroducido = parseFloat(this.value);
+                   if (equipofiltrado.filter(e => e[this.id] == this.value).length > 0);
+                    else
+                    {
+                        var event = new Event("change", { bubbles: true });
+                        $('#myModalCaracteristicas select')[0].dispatchEvent(event);  
+                        if (equipofiltrado.length == 1)
+                        for (var m = 0; m &lt;  $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']").length;m++)
+                        {
+                            const inputactual =  $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']")[m];
+                                inputactual.value = equipofiltrado[0][inputactual.id] ;
+                        }
+                        else
+                        {
+                            let idcampo = this.id 
+                            let closest = equipofiltrado.reduce(function(prev, curr) {
+                              return (Math.abs(parseFloat(curr[idcampo]) - numerointroducido) &lt; Math.abs(parseFloat(prev[idcampo]) - numerointroducido) ? curr : prev);
+                            });
+                            this.value = closest[idcampo];
+                        }
+                    }
+                });
+            }
+        }
+        //Coge los valores de los modales
+        if ($('#caracteristicas button').length > 0)
+            return;
+        for (var s = 0; s &lt; $('#myModalCaracteristicas select').length ; s++)
+            Alabels.push($('#myModalCaracteristicas select')[s].id);
+        for (var a = 0; a &lt; Alabels.length ; a++)
+            if (Alabels[a] !== null)
+                document.getElementById(Alabels[a]).addEventListener("change",  function(event){
+        var result = filtrado(event);
+        equipofiltrado = result;
+        if (equipofiltrado != undefined )
+            document.getElementById('numEquiposFiltrados').innerHTML =  equipofiltrado.length;
+            if (equipofiltrado.length == 1 &amp;&amp; Array.isArray(equipofiltrado))
+            {
+                const inputstandar =  $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']");
+                for (var m = 0; m &lt; inputstandar.length ; m++)
+                {
+                    const inputactual = inputstandar[m];
+                     inputactual.value = equipofiltrado[0][inputactual.id] ;
+                }
+            }
+        });
+        
+    Alabels = [];
+        var event = new Event("change", { bubbles: true });
+        if (definido != 0)
+        $('#myModalCaracteristicas input[id*="min "]')[0].dispatchEvent(event);
+        else
+        $('#myModalCaracteristicas select')[0].dispatchEvent(event);
+    }
+    addlistener();
+}
+this.Combine = function(arr)
+{
+    Combinararray = function (arr) 
+    {
+           concatsubarrays = function (arr)
+            {
+                if (Array.isArray(arr))
+                {
+                    let resultado = [].concat.apply([], arr);
+                    return resultado;
+                }
+                else return arr;
+            }
+        if (arr.length === 0) 
+            return [];
+        else if (arr.length ===1)
+            return arr[0];
+        else 
+        {
+            var resultado = [];
+            var equiposrestantes = Combinararray(arr.slice(1));  
+            for (var c in equiposrestantes) 
+                for (var i = 0; i &lt; arr[0].length; i++) 
+                    resultado.push([arr[0][i],concatsubarrays(equiposrestantes[c])]); 
+            var res = [];
+            for (s = 0 ; s &lt; resultado.length ;s++)
+                res.push(concatsubarrays(resultado[s]))
+            return res;
+        }
+    }
+    let res = Combinararray(arr);
+    return res;
+}
+/**
+
+                *Carga la tabla de paramétricos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+this.LoadTable = async function()
+{   //carga la tabla
+    if (combinacionesparametrico.length == 0)
+        var datos = [];
+        await $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': 'jsonparametrico', 'action':'cargar'})
+        .success(function (data) 
+            {
+            combinacionesparametrico = data;
+            datos = data;
+            });
+            return datos;
+}       
+/**
+
+                *Cambia la casilla de verificación del equipo
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+this.checkequipo = function()
+{
+    //Cambia el color de la celda y el valor de la casilla
+    for (var ef = 0; ef &lt;equiposfiltrados.length ;ef++)
+    {
+        if(JSON.stringify(equiposfiltrados[ef]) === JSON.stringify(equipofiltrado))
+            return 1;
+        for (var eq1 = 0; eq1 &lt; equiposfiltrados[ef].length ;eq1++)
+        {   
+            var nombre1 = equiposfiltrados[ef][eq1].nombre;
+            for (var eq2 = 0; eq2 &lt; equipofiltrado.length ;eq2++)
+            {
+                var nombre2 = equipofiltrado[eq2].nombre;
+                if (nombre1 === nombre2)
+                {
+                    equiposfiltrados.splice(equiposfiltrados.indexOf(equiposfiltrados[ef]));
+                    return 0;
+                }
+            }
+        }
+    }
+    return 0;
+}
+this.PrintTable = function()
+{
+    /**
+
+                *Cambia la celda  del equipo
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    addchecklistener = function()
+    {
+        //Cambia el color de la celda en función de si selecciona o deselecciona
+       for (var c = 0; c &lt; $('#tablaparametrico input').length ; c++)  
+       {
+
+        $('#tablaparametrico input')[c].addEventListener("change",  function(event)
+        {
+            let evento = event || window.event;
+            let target = evento.target;
+            if (target.checked)
+            target.closest("tr").style.backgroundColor = "#09ff0929";
+            else 
+            target.closest("tr").style.backgroundColor = "white";
+        });
+       }
+    }
+    addchecklistener();   
+}
+this.guardarinstalacion =  async function()
+{
+    /**
+
+                *Concatena los arrays
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    concatsubarrays = function (arr)
+    {
+        //Concatena los arrays con los valores
+        if (Array.isArray(arr))
+        {
+            let resultado = [].concat.apply([], arr);
+            return resultado;
+        }
+        else return arr;
+    }
+    /**
+
+                *Filtra los equipos repetidos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    filtrarrepetidos = function (arr)
+    {
+        let resultado = [];
+        resultado.push(arr);
+        resultado = concatsubarrays(resultado)
+        for (var a = 0; a &lt; arr.length ; a++)
+        {
+            for (var b = 0; b &lt; arr.length ; b++)
+            {
+                if(JSON.stringify(arr[a]) === JSON.stringify(arr[b]))
+                {
+                    resultado.splice(a,1);
+                }
+            }
+        }
+        return resultado;
+    }
+    /**
+
+                *Comprueba si los equipos son únicos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    getUnique = function(arr, comp) {
+        const unique = arr
+            .map(e => e[comp])
+            .map((e, i, final) => final.indexOf(e) === i &amp;&amp; i)
+            .filter(e => arr[e]).map(e => arr[e]);
+            return unique;
+    }
+    /**
+
+                *Divide el array de equipos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    dividearray = function (arr)
+        {
+        let nombres = getUnique(arr,'nombre');
+        let result = [];
+        for (var n = 0; n &lt; nombres.length; n++)
+        {
+            let nombreactual = nombres[n].nombre;
+            result.push(arr.filter(function(x)
+            {
+                if (x.nombre === nombreactual)
+                return x;
+            }));
+        }
+        return result;
+    }
+    flatten = function(arr) 
+        {
+        return arr.reduce(function (flat, toFlatten) 
+        {
+            return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+        }, []);
+    }
+    /**
+
+                *Guarda los nombre de los equipos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    getnombreequipos = function()
+    {
+        if (Array.isArray(equiposfiltrados[0]))
+        {
+            for (var e = 0 ; e &lt; equiposfiltrados.length ; e++)
+            {
+                Anombres.push(equiposfiltrados[e][0].nombre);
+            }
+        }
+        else 
+        {
+            for (var e = 0 ; e &lt; equiposfiltrados.length ; e++)
+            {
+                Anombres.push(equiposfiltrados[e].nombre);
+                break;
+            }
+        }
+        return Anombres;
+    }
+    /**
+
+                *Comprueba si la combinación elegda resuta peor o mejor que la anterior elegida
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    comparacombiequipos = function(Anombres)
+    {
+        let resultado = [];
+            combinacionesparametrico.map(function (x) 
+            {
+                for (var s = 0; s &lt; x.length ; s++)
+                    if (!Anombres.includes(x[s].nombre) &amp;&amp; !resultado.includes(x[s])) 
+                        resultado.push(x[s]) 
+            }); 
+        if (resultado.length !=0)
+            resultado = getUnique(resultado,'id');
+        if (resultado.length != 0)
+            resultado = dividearray(resultado);
+        return resultado;
+            
+    }
+    /**
+
+                *Comprueba que no hay errores en los equipos  sus valores
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+    prepararformatoequipos = function(comparacion)
+    {
+        comparacion.push(equiposfiltrados);
+        if(Array.isArray(comparacion[comparacion.length-1]))
+        {
+                let salida = flatten(comparacion);
+                comparacion = dividearray(salida);
+                equiposfiltrados = comparacion;    
+        }                        
+        else
+        {    
+            comparacion[comparacion.length-1] = concatsubarrays(comparacion[comparacion.length-1] )
+            equiposfiltrados = comparacion;
+        }
+    }
+    concadenarequipos = function(comparacion)
+    {
+        comparacion.push(equiposfiltrados);
+        if(Array.isArray(comparacion[comparacion.length-1]))
+        {
+                let salida = flatten(comparacion);
+                comparacion = dividearray(salida);
+                equiposfiltrados = comparacion;    
+        }                        
+        else
+        {    
+            comparacion[comparacion.length-1] = concatsubarrays(comparacion[comparacion.length-1] )
+            equiposfiltrados = comparacion;
+        }
+    }
+    filtracombinacion = function()
+    {
+        if (Array.isArray(combinacionesparametrico[0]))
+        {
+
+            /**
+
+                *Comprueba que todos los equipos tiene la misma dimensión
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+multiDimensionalUnique = function(arr) {
+
+    var uniques = [];
+    var itemsFound = {};
+    for(var i = 0, l = arr.length; i &lt; l; i++) {
+        var stringified = JSON.stringify(arr[i]);
+        if(itemsFound[stringified]) { continue; }
+        uniques.push(arr[i]);
+        itemsFound[stringified] = true;
+    }
+    return uniques;
+}
+
+          var penelope = [];
+          for (var ns = 0; ns &lt; combinacionesparametrico.length ; ns++)
+				for (var nd = 0; nd &lt; combinacionesparametrico[ns].length; nd++)
+                {
+                    var auxiliar = [];
+                    auxiliar = combinacionesparametrico[ns].filter(function(x)
+                    {
+                        if (!equiponofiltrado.includes(x.nombre))
+                            return x; 
+                    }
+                    );
+                    if (auxiliar.length != 0)
+                        penelope.push(auxiliar);
+				}
+        sefiltra = 1;
+        combinacionesparametrico = multiDimensionalUnique(penelope)
+        }
+        else
+        {
+            for (var nf = 0; nf &lt; equiponofiltrado.length; nf++)
+            {
+                combinacionesparametrico = combinacionesparametrico.filter(function(x)
+            {
+                if (x.nombre !== equiponofiltrado[nf])
+                    return x; 
+            });
+            sefiltra = 1;
+            }
+        } 
+    }
+    if (nuevainstalacion == 1)
+    {
+        //Borra las combinaciones de la base de datos
+        await  $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': 'jsonparametrico', 'action':'borrar'})
+        nuevainstalacion = 0;
+    }
+    let Anombres = [];
+    let sefiltra = 0;
+    let comparacion = [];
+    if (equiposfiltrados.length == 0 &amp;&amp; combinacionesparametrico.length == 0)
+    {
+        //Se efectúan todas las comprobaciones y se aplican la mayoría de funciones en este momento
+        combinacionesparametrico = await this.LoadTable();;
+        if (combinacionesparametrico.length == 0)
+            return 1;
+        else if (equiponofiltrado.length == 0)
+        {
+            return 0;
+        }
+        else if (equiponofiltrado.length != 0)
+        {
+            filtracombinacion();
+        }
+    }
+    if (equiposfiltrados.length != 0 &amp;&amp; combinacionesparametrico.length != 0)
+    {
+        if (equiponofiltrado.length != 0)
+        {
+        filtracombinacion();
+        }
+        else
+        {
+            Anombres = getnombreequipos();
+            if (Array.isArray(combinacionesparametrico[0]))
+                comparacion = comparacombiequipos(Anombres);
+            else
+            {
+                comparacion.push(combinacionesparametrico);
+            }
+            if (comparacion.length != 0)
+                concadenarequipos(comparacion);   
+        }
+    }
+    if (equiposfiltrados.length == 0 &amp;&amp; combinacionesparametrico.length != 0)
+    {
+        if (equiponofiltrado.length != 0)
+        filtracombinacion();
+        else
+        return 0;
+    }
+    if (equiposfiltrados.length !=0 &amp;&amp; combinacionesparametrico.length == 0 &amp;&amp; sefiltra == 0)    
+    {
+        var combibd = await this.LoadTable();
+        if (combibd.length != 0)
+        {
+                Anombres = getnombreequipos();
+            if (Array.isArray(combinacionesparametrico[0]))
+                comparacion = comparacombiequipos(Anombres);
+            else
+            {
+                comparacion.push(combinacionesparametrico);
+                if (JSON.stringify(concatsubarrays(comparacion)) === JSON.stringify(combinacionesparametrico))
+                {
+                    return 0;
+                }
+            }
+            if (comparacion.length != 0)
+                prepararformatoequipos(comparacion);
+        }
+        
+    }
+    equiponofiltrado = [];
+    if (equiposfiltrados.length > 0)
+    {
+        if (!Array.isArray(equiposfiltrados[0]))
+        {
+            convert2d = function(arr)
+            {
+                var newArr = [];
+                while(arr.length) newArr.push(arr.splice(0,arr.length));
+                return newArr;
+            }
+            equiposfiltrados = convert2d(equiposfiltrados);
+        
+        }
+        combinacionesparametrico = this.Combine(equiposfiltrados);
+        equiposfiltrados = [];
+        if (combinacionesparametrico != undefined)
+        {
+            let jsonobject = {};
+            for (var t = 0; t &lt; combinacionesparametrico.length ;t++)
+            {
+                jsonobject[t] = JSON.stringify(combinacionesparametrico[t]);
+            }
+            jsonparametrico = JSON.stringify(combinacionesparametrico); 
+            //Se insertan los datos paramétricos
+            $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': 'jsonparametrico', 'action':'borrar'})
+            .success(function () 
+            {
+                $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': jsonparametrico, 'action':'insert'})
+            });
+            
+        }
+    }
+    else 
+    {
+        if (sefiltra == 1)
+        {
+            if (Array.isArray(combinacionesparametrico[0]))
+            {
+                if (combinacionesparametrico[0][0] == undefined)
+                {
+                    sefiltra = 0;
+                }
+            }
+            else if (combinacionesparametrico.length == 0)
+                sefiltra = 0;
+        }
+        if(sefiltra == 1)
+        this.actualizatabla();
+        if (sefiltra == 0) 
+        {
+            // Se borra cuando se guarda sin tocar nada, aun teniendo equipos parametricos definidos.
+            $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': 'jsonparametrico', 'action':'borrar'})
+            combinacionesparametrico = [];
+            return 1;
+        }
+    }
+}
+/**
+
+                *Se guarda los equipos seleccionados en un array
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+this.guardarequipo = function()
+{
+    
+    if (exismod == 1)
+    {
+    var event = new Event("change", { bubbles: true });
+    var inputsminmax = this.getelementos();
+    var nofiltres = 0;
+    if (inputsminmax.length > 0 &amp;&amp; document.getElementById('numEquiposFiltrados').innerHTML != 0 )
+    inputsminmax[0].dispatchEvent(event);
+    var eqfiltrado = this.checkequipo(); 
+    if (equipofiltrado.length > 0 &amp;&amp; eqfiltrado == 0 &amp;&amp; document.getElementById("numEquipos") != null )
+    {
+        var salida = equipofiltrado.map(function(x)
+        {
+            x["Nº Equipos repetidos"] = document.getElementById("numEquipos").value;
+            return x;
+        });
+        if (!Array.isArray(salida[0]) &amp;&amp; salida.length > 1)
+        equiposfiltrados.push(salida);
+        else
+        {
+            nofiltres = 1;
+            equipofiltrado = [];
+            return nofiltres;     
+        }
+    }
+    else
+    {
+        nofiltres = 1;
+    }
+    equipofiltrado = [];
+    return nofiltres; 
+    }  
+}
+/**
+
+                *Comprueba que equipos no están definidos 
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+this.EquiposZero = function (ID,acont,valoresServiciosComplementos,equipos)
+{
+    getinputreales = function()
+    {
+        const inputs = $("#myModalCaracteristicas input").not("[id*='min '],[id*='max '],[id*='numEquipos']");
+        const len = inputs.length;
+        let resultado = [];
+        for (var a = 0; a &lt; len ; a++)
+        {
+            const inputactual = inputs[a];
+            const valor = parseFloat(inputactual.value);
+            if (!isNaN(valor))
+            resultado.push(inputactual);
+             
+        }
+        return resultado;
+    }
+    if((valoresServiciosComplementos[acont][0] == 0 || valoresServiciosComplementos[acont][1] == 0 || valoresServiciosComplementos[acont][2] == 0) &amp;&amp; document.getElementById('numEquiposFiltrados').innerHTML == 1)
+    {
+        const tipodeequipos = Oequipo[nombreequipo];
+        const inputs = getinputreales();
+        const resultado = inputs.map((el,i,a) => tipodeequipos.filter(e => e[inputs[i].id] == inputs[i].value)).filter((ell,il)=> ell.length == 1)
+        valoresServiciosComplementos[acont][0] = resultado[0][0].fabricante;
+        valoresServiciosComplementos[acont][1] = resultado[0][0].modelo;
+        valoresServiciosComplementos[acont][2] = resultado[0][0].tipo;
+
+
+    }
+}
+//
+this.eqnofil = function(nombreequipo)
+{
+    if (combinacionesparametrico.length != 0)
+    {
+        if (Array.isArray(combinacionesparametrico[0]))
+        {
+            for(var a = 0; a &lt; combinacionesparametrico[0].length; a++)
+            {
+                if (nombreequipo ==  combinacionesparametrico[0][a].nombre )
+                return 1;
+            }
+            return 0;
+        }
+        else
+        {
+            for (var a = 0; a &lt; combinacionesparametrico.length ;a++)
+            {
+                if (nombreequipo == combinacionesparametrico[a].nombre)
+                return 1;
+            }
+            return 0;
+        }
+    } 
+}
+/**
+
+                *Se actualiza latabla con los nuevos equipos
+
+                * @param  {array}
+                * @return  {void}
+
+                */
+this.actualizatabla = function()
+{
+    if (combinacionesparametrico != undefined)
+    {
+        let jsonobject = {};
+        for (var t = 0; t &lt; combinacionesparametrico.length ;t++)
+        {
+            jsonobject[t] = JSON.stringify(combinacionesparametrico[t]);
+        }
+        jsonparametrico = JSON.stringify(combinacionesparametrico); 
+        $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': 'jsonparametrico', 'action':'borrar'})
+        .success(function () 
+        {
+            $http.post("insertarparametrico.php", { 'idcaso': idCaso, 'datos': jsonparametrico, 'action':'insert'})
+        });
+    }
+}
+}])</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#actualizatabla">actualizatabla</a></li><li><a href="global.html#checkequipo">checkequipo</a></li><li><a href="global.html#EquiposZero">EquiposZero</a></li><li><a href="global.html#getelementos">getelementos</a></li><li><a href="global.html#Getlabels">Getlabels</a></li><li><a href="global.html#guardarequipo">guardarequipo</a></li><li><a href="global.html#LoadTable">LoadTable</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Tue Jun 30 2020 12:58:03 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

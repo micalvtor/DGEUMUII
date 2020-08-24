@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Herramientas.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Herramientas.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code> /**
+
+ * @fileoverview etiquetas de la aplicación
+
+ *
+
+ * @version                               2.2
+
+ *
+
+ * @author                 Manuel Mallén Rodríguez &lt;gacetuplex@gmail.com>
+
+ * @copyright           Termotecnia
+
+
+        */
+angular.module('myApp').service('HUtil', ['$http', function ($http)
+{
+this.agrupacionesconsumo =  ["Colectores", "Servicios", "Equipos", "Intercambiadores"];
+this.variablesconsumos = {
+    "Potencia[W]": ["Servicios", "Equipos"],
+    "Potencia_Recuperada[W]": ["Equipos"],
+    "Potencia_Entregada[W]": ["Servicios", "Equipos", "Intercambiadores"],
+    "Rendimiento": ["Equipos"],
+    "Temperatura[C]": ["Colectores", "Servicios", "Equipos", "Intercambiadores"],
+    "Temperatura_MINIMA[C]": ["Colectores"],
+    "Temperatura_MAXIMA[C]": ["Colectores"],
+    "Caudal[kg/s]": ["Equipos", "Intercambiadores"],
+    "Temperatura_2[C]": ["Equipos", "Intercambiadores"],
+    "Caudal_2[kg/s]": ["Equipos", "Intercambiadores"],
+    "Funcionamiento": ["Equipos"],
+    "Fracción demanda cubierta": ["Servicios"]
+};
+this.variablesconsumoshint = {
+    "Potencia[W]": ["Potencia demandada", "Potencia Consumida"],
+    "Potencia_Recuperada[W]": ["Sólo disponible para enfriadoras con recuperación"],
+    "Potencia_Entregada[W]": ["Potencia cubierta", "Potencia entregada al colector correspondiente", "Potencia intercambiada"],
+    "Rendimiento": ["Rendimiento del equipo"],
+    "Temperatura[C]": ["Temperatura media del colector", "Temperatura del agua que se envía al servicio", "Temperatura de salida", "Temperatura de salida del lado frío del intercambiador"],
+    "Temperatura_MINIMA[C]": ["Temperatura mínima del colector"],
+    "Temperatura_MAXIMA[C]": ["Temperatura máxima del colector"],
+    "Caudal[kg/s]": ["Caudal que se envía al servicio", "Caudal que se envía al servicio"],
+    "Temperatura_2[C]": ["En bombas de calor y máquinas de absorción se refiere al lado caliente", "Temperatura de salida del lado caliente del intercambiador"],
+    "Caudal_2[kg/s]": ["En bombas de calor y máquinas de absorción se refiere al lado caliente", "Caudal del lado caliente del intercambiador"],
+    "Funcionamiento": ["Indica si el equipo o complemento correspondiente funciona en un instante determinado"],
+    "Fracción demanda cubierta": ["Indica si la demanda está siendo cubierta total o parcialmente"]
+};
+this.tablanuevainstalacion = {
+    "EquiposExistentes": ["Caldera", "Solar térmica", "Bomba de Calor", "Enfriadora", "Acumulación ACS", "Acumulación Solar", "Interacumulador eléctrico", "Intercambiador", "Intercambiador", "Intercambiador"],
+    "EquiposNuevos": ["Caldera de condensación", "Caldera de biomasa", "Bomba de calor aire-agua", "Bomba de calor agua-agua", "Solar térmica: Captador plano", "Solar térmica: Tubos vacío", "Acumulación ACS", "Máquina de absorción simple efecto", "Solar fotovoltaica"],
+    "Servicios": ["Calor Técnico o Lavandería", "Calefacción Alta", "Piscina", "Condensación", "Frio Climatización", "Frio Subcero", "Calefacción Media", "ACS", "Electricidad"],
+    "Sistemas": ["Sistema más probable por defecto", "", "Sistema propuesto prioritario 1", "Sistema propuesto prioritario 2", "Sistema propuesto prioritario 3a", "Sistema propuesto prioritario 3b", "", "Sistema seleccionado por el usuario"],
+    "Circuitos": ["Circuito de entrada", "Circuito de Salida"],
+    "th": []
+};
+this.INFequipos = {
+    "Bomba de calor agua agua":["fabricante","modelo","tipo","COP nominal","EER nominal","capacidad_nominal_calefaccion_kw","capacidad_nominal_refrigeracion_kw","Nº Equipos repetidos"],
+    "Bomba de calor aire agua":["fabricante","modelo","tipo","COP nominal","EER nominal","capacidad_nominal_calefaccion_kw","capacidad_nominal_refrigeracion_kw","Nº Equipos repetidos"],
+    "Enfriadora con recuperación":["fabricante","modelo","tipo","EER nominal","capacidad_nominal_refrigeracion_kw","Nº Equipos repetidos"],
+    "Baja temperatura":["fabricante","modelo","tipo","Uso","Combustible","Potencia útil (kW)","Rendimiento 100 (%)","Nº Equipos repetidos"],
+    "Caldera condensación":["fabricante","modelo","tipo","Uso","Combustible","Potencia útil (kW)","Rendimiento 100 (%)","Nº Equipos repetidos"],
+    "Calderas de biomasa":["fabricante","modelo","tipo","Uso","Combustible","Potencia útil (kW)","Rendimiento 100 (%)","Nº Equipos repetidos"],
+    "captadores planos":["fabricante","modelo","tipo","area_captador_m2","Nº Equipos repetidos"],
+    "Tubo de vacío":["fabricante","modelo","tipo","area_captador_m2","Nº Equipos repetidos"],
+    "Simple efecto":["fabricante","modelo","tipo","potencia_refrigeracion_kw","consumo_electrico_condiciones_nominales_kw","cop_refrigeracion_nominal","Nº Equipos repetidos"]
+};
+
+this.CambiarColor_Children_Select = function()
+{
+    CambiarColor = function (event) 
+    {
+        let oEvento = event || window.event;
+        oEvento.target.style.backgroundColor = "SkyBlue";
+    }
+    QuitarColor = function (event) 
+    {
+        let oEvento = event || window.event;
+        oEvento.target.style.backgroundColor = "white";
+    }
+    let colorhover = document.querySelectorAll(".hover");
+    for (let i = 0; i &lt; colorhover.length; i++) {
+        colorhover[i].addEventListener("mouseover", CambiarColor);
+        colorhover[i].addEventListener("mouseout", QuitarColor);
+    }
+}
+
+
+}])</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Tue Jun 30 2020 12:56:22 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

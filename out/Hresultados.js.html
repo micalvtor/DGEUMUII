@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Hresultados.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Hresultados.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code> /**
+
+ * @fileoverview Pantalla de resultados
+
+ *
+
+ * @version                               2.2
+
+ *
+
+ * @author                 Manuel Mallén Rodríguez &lt;gacetuplex@gmail.com>
+
+ * @copyright           Termotecnia
+
+
+        */
+angular.module('myApp').service('Hresultados', ['$http', '$q','Hborrardatos', function ($http, $q,Hborrardatos)
+{
+    var porcentajepiscina = {};
+    var idresint = [];
+this.updateresultados = function () 
+{
+    //Funcion lanzadera resultados
+    PaginaInicioResultados = async function()
+    {
+        vaciarcontenido();
+        MostrarSpinner();
+       await LoaderDB();
+       await obtenerdatosedificio();
+        haypiscina = false;
+        haypiscina2 = false;
+        document.getElementById("imagenes").style.display = "flex";
+        document.getElementById("contenido").style.display = "initial";
+        document.getElementById("menu").style = "background-color: none;display:none";
+        for (var contelect = 0; contelect &lt; ADequipos.length; contelect++) {
+            var servactual = ADequipos[contelect];
+            if (servactual.nombre == "Piscina" &amp;&amp; servactual.nuex == "Existente")
+                haypiscina = true;
+            else if (servactual.nombre == "Piscina" &amp;&amp; servactual.nuex == "Nuevo")
+                haypiscina2 = true;
+        }
+        cabeceraleido = 0;
+        cargar = 0;
+        filas = 0;
+        rango2 = [];
+        rango3 = [];
+        cont = 0;
+        elementosSel = [];
+        //Creamos la sección de resultados
+        var menu = "";
+        menu += "&lt;div id='archivos'>";
+        menu += "&lt;div style='text-align:center;'>";
+        menu += "&lt;span style='display: inherit;margin-top:40px;'>Resultados Demandas&lt;/span>"
+        menu += "&lt;div style='display: inline-flex;justify-content: center;border:1px solid #00000033;width: fit-content;'>";
+        menu += "&lt;input type='button' class='btnMenu' value='Cargar Archivo resultado demanda' style='transform: scale(1); background-color:orange; margin: 20px' onclick='Cargarentedim()' id='submitdemanda' name='submit'>&lt;br>";
+        menu += "&lt;/div>";
+        menu += "&lt;span style='display: inherit;margin-top:40px;'>Resultados Alternativas&lt;/span>"
+        menu += "&lt;div style='display: inline-flex;justify-content: center;border:1px solid #00000033;width: fit-content;'>";
+        menu += "&lt;input type='button' class='btnMenu' value='Cargar Archivo resultado consumo' style='transform: scale(1); background-color:orange; margin:20px;' onclick='getrespidim();' id='submitconsumo' name='submit'>&lt;br>";
+        menu += "&lt;input type='button' class='btnMenu' value='Cargar Resumen de resultados' style='transform: scale(1); background-color:orange; margin:20px;' onclick='getintegrado()' id='submitintegrado' name='submit'>&lt;br>";
+        menu += "&lt;/div>";
+        menu += "&lt;span style='display: inherit;margin-top:40px;'>Informe de resultados&lt;/span>"
+        menu += "&lt;div style='display: inline-flex;justify-content: center;border:1px solid #00000033;width: fit-content;'>";
+        menu += "&lt;input type='button' class='btnMenu' value='Generar informe resultados' style='transform: scale(1); background-color:orange;margin:20px' onclick='generarinforme()' id='submitintegrado' name='submit'>&lt;br>";
+        menu += "&lt;input type='button' class='btnMenu' value='Cargar informe resultados' style='transform: scale(1); background-color:orange;margin:20px' onclick='cargarinforme()' id='submitintegrado' name='submit'>&lt;br>";
+        menu += "&lt;/div>";
+        menu += "&lt;/div>";
+        menu += "&lt;/div>";
+        menu += "&lt;div style='margin-top: 50px;' id='crt_ertdlyYY'>&lt;/div>";
+        document.getElementById("esquema").innerHTML = "";
+        document.getElementById("lineas").innerHTML = "";
+        document.getElementById("menu").innerHTML = "";
+        document.getElementById("contenido").innerHTML = menu;
+        OcultarSpinner();
+    }
+    Loaders = function()
+    {
+        /**
+
+        *Cargamos la base de datos
+
+        * @return  {void}
+
+         */
+        LoaderDB = async function()
+        {
+
+            ADcamposolar = $http.post("CampoSolar.php", { 'action': "cargar", 'id': idCaso });
+            ADequipos = $http.post('equipos.php', { 'idcaso': idCaso, });
+            ADbusescasos = $http.post('busesCaso.php', { 'idcaso': idCaso, 'nuex': "No se usa en php" });
+            await $q.all([ADequipos,ADbusescasos,ADcamposolar])
+            .then(function (data) {
+                ADequipos = data[0].data;
+                ADbusescasos = data[1].data;
+                ADcamposolar = data[2].data;
+            })
+
+        }
+        /**
+
+        *Resultados de demandas
+
+        * @return  {void}
+
+         */
+        LoaderDemandas = function()
+        {
+            Cargarentedim = function () {
+                MostrarSpinner();
+                $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'entedim' }).success(function (data, status, headers, config) {
+                    $http.post("CargarArchivoDemandas.php", { 'md5': nombremd5, }).success(function (data, status, headers, config) {
+                        txt = data;
+                        demanda = 1;
+                        consumo = 0;
+                        integrado = 0;
+                        arcCLi = txt;
+                        uploadGraficas(arcCLi);
+                        OcultarSpinner();
+                    })
+                        .catch(function (error) {
+                            alert('Se ha encontrado el siguiente error:\r\n ' + error.data + '');
+                            if (error.data == "Archivo de datos no encontrado.")
+                                alert('Si ha generado el archivo de demandas con éxito, espere un poco a que sea calculado. ')
+                            return OcultarSpinner();
+                        })
+                }).catch(function (error) {
+                    alert('Ha habido un error en calcular demandas :\r\n ' + error.data + '');
+                    return OcultarSpinner();
+                });
+            }
+        }
+        /**
+
+        *Resultados de consumo
+
+        * @return  {void}
+
+         */
+        LoaderConsumos = function()
+        {
+            /**
+
+        *Selector Parametrico
+
+        * @return  {void}
+
+         */
+            Selectrespidim = function () {
+                //Cargamos los botnoes d la sección
+                var oEvento = event || window.event;
+                var target = oEvento.target;
+                if ($('#crt_ertdlyYY button').length > 0) {
+                    $('#crt_ertdlyYY')[0].removeChild($('#crt_ertdlyYY button')[0]);
+                }
+                if (target.value != 0) {
+                    var button = document.createElement('button');
+                    button.setAttribute('onclick', 'Cargarespidim("' + target.selectedOptions[0].title + '")');
+                    var textoboton = target.selectedOptions[0].textContent;
+                    button.textContent = 'Cargar Resultado Consumo ' + textoboton + '';
+                    button.setAttribute('id', 'buttonrespidim' + target.selectedOptions[0].value + '');
+                    button.setAttribute('class', 'btnMenu');
+                    button.style = 'margin-top:20px;background-color;background-color: orange;display:flex;';
+                    crt_ertdlyYY.appendChild(button);
+                }
+            }
+            /**
+
+        *Obtener archivos pidim
+        * @return  {void}
+
+         */
+            getrespidim = async function () {
+                var errorarchivo = 0;
+                var respidim;
+                await $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'pidim' }).catch(function (error) {
+                    alert('Ha habido un error en calcular consumos :\r\n ' + error.data + '');
+                    errorarchivo = 1;
+                    return OcultarSpinner();
+                })
+                if (errorarchivo == 1)
+                    return OcultarSpinner();
+                await $http.post("getrespidim.php", { 'caso': nombreCaso, 'carpeta': user.email, }).success(function (data, status, headers, config) {
+                    respidim = data;
+                })
+                if (respidim.length == 0) {
+                    alert('ERROR: No se ha generado ningún archivo de consumo')
+                    return OcultarSpinner();
+                }
+                    Cargarespidim(respidim[0]);
+
+            }
+            /**
+
+        *Cargar el archivo seleccionado
+
+        * @param  {string}
+        * @return  {void}
+
+         */
+            Cargarespidim = function (path) {
+                MostrarSpinner();
+                $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'pidim' }).success(function (data, status, headers, config) {
+                    $http.post("CargarArchivoConsumos.php", { 'path': path }).success(function (data) {
+                        txt = data;
+                        demanda = 0;
+                        consumo = 1;
+                        integrado = 0;
+                        arcCLi = txt;
+
+                        uploadGraficas(arcCLi);
+                        OcultarSpinner();
+                    }).catch(function (error) {
+                        alert('Se ha encontrado el siguiente error:\r\n' + error.data + '');
+                        if (error.data == "Archivo de datos no encontrado.")
+                            alert('Si ha generado el archivo de consumos con éxito, espere un poco a que sea calculado. ')
+                        return OcultarSpinner();
+                    })
+                }).catch(function (error) {
+                    alert('Ha habido un error al calcular alternativas :\r\n ' + error.data + '');
+                    vaciarcontenido();
+                    return OcultarSpinner();
+                });
+            }
+        }
+        /**
+
+        *Resumen de resultados
+
+         */
+        LoaderIntegrado = function()
+        {
+            /**
+
+        *Obtener archivos Pidim_calculado
+
+        * @param  {string}
+        * @return  {void}
+
+         */
+            getintegrado = function (origen) {
+                var resintegrado;
+                $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'pidim' }).success(function (data, status, headers, config) {
+                 $http.post("getresintegrado.php", { 'caso': nombreCaso, 'carpeta': user.email, }).success(function (data, status, headers, config) {
+                    resintegrado = data;
+                    if (resintegrado.length == 0) {
+                        alert('ERROR: No se ha generado ningún archivo de resultados')
+                        return OcultarSpinner();
+                    }
+                    if (origen == 'respidim' &amp;&amp; resintegrado.length > 1)
+                    {
+                    alert('Tipo de resultado no disponible para el cálculo parmétrico, por favor, visualice el resumen de resultados.')
+                    vaciarcontenido();
+                    return "FALSE";
+                    }
+                    if(equiposParam.length == 0 &amp;&amp; resintegrado.length > 0 )
+                    {
+                        cargarresintegrado(resintegrado);
+                    }
+                    else 
+                    {
+                        if (resintegrado.length == equiposParam.length)
+                            cargarresintegrado(resintegrado);
+                        else if (resintegrado.length &lt; equiposParam.length )
+                        {
+                            alert('No se han calculado aún todos los archivos\r\nProgreso actual: '+resintegrado.length+' de '+equiposParam.length+' archivos calculados.' );
+                            return;
+                        }
+                        else if (resintegrado.length > equiposParam.length )
+                        {
+                            alert('ERROR: Se han encontrado archivos adicionales, vuelva a calcular alternativas \r\nArchivos encontrados: '+resintegrado.length+'\r\nArchivos Solicitados: '+equiposParam.length+'');
+                            return;
+                        }
+                    }
+                    
+                })
+            }).catch(function (error) {
+                alert('Ha habido un error al calcular alternativas :\r\n ' + error.data + '');
+                return OcultarSpinner();
+            });
+    
+            }
+            /**
+
+        *Cargar todos los archivos Pidim_calculado
+
+        * @param  {string}
+        * @return  {void}
+
+         */
+            cargarresintegrado = function (resintegrado) {
+                $http.post("CargarArchivoIntegrado.php", { 'arraypath': resintegrado }).success(function (data) {
+                    txt = data;
+                    demanda = 0;
+                    consumo = 0;
+                    integrado = 1;
+                    arcCLi = txt;
+                    uploadGraficas(arcCLi);
+                    OcultarSpinner();
+                }).catch(function (error) {
+                    alert('Se ha encontrado el siguiente error:\r\n' + error.data + '');
+                    return OcultarSpinner();
+                })
+            }
+        }
+        //Informe
+        LoaderInforme = function()
+        {
+            /**
+
+        *Carga Modal Informe
+
+        * @return  {void}
+
+         */
+            generarinforme = async function () {
+                if (ADcamposolar != "false" || ADcamposolar == undefined)
+                var foto = "true";
+                else
+                var foto = "false";
+               await $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'pidim' }).error(function (error) 
+                {
+                    alert('Se ha encontrado el siguiente error en el cálculo de alternativas:\r\n'+error+'');
+                    return;
+                })
+              await $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'entedim' }).error(function (error) 
+                {
+                    alert('Se ha encontrado el siguiente error en el cálculo de demandas:\r\n'+error+'');
+                    return;
+                })
+              await $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'OPTIM', 'pv':foto }).error(function (error) 
+                {
+                    alert('Se ha encontrado el siguiente error:\r\n'+error+'');
+                    return;
+                })
+                if (casosParametricosaCalcularManuel.length == 0)
+                {
+                    await $http.post("selparametrico.php", { 'idcaso': idCaso, 'datos':'none' , 'action':'cargar','equipos':'none','type':'equipos'})
+                    .success(function (datos) 
+                    {   
+                        casosParametricosaCalcularManuel = datos;
+                    });
+                }
+                $('#myModalinforme').modal('show');
+                check = function () {
+                    var oEvento = event || window.event;
+                    var target = oEvento.target;
+                    infcontinput = 0;
+                    for (var inp = 0; inp &lt; infinputs.children.length; inp++) {
+                        if (infinputs.children[inp].checked == true)
+                            infcontinput++;
+                    }
+                    if (infcontinput >= 3) {
+                        target.checked = false;
+                    }
+                    if (infcontinput == 0)
+                        document.getElementById('generarinforme').disabled = true;
+                    else
+                        document.getElementById('generarinforme').disabled = false;
+                }
+                for (var inp = 0; inp &lt; infinputs.children.length; inp++) {
+                    infinputs.children[inp].addEventListener('change', check);
+                }
+            }
+             /**
+
+        *Genera archivo INFIM
+
+        * @return  {void}
+
+         */
+            generararchivoinforme = async function()
+            {
+                var INFequipos = 
+                {
+                    "Existentes":
+                    {
+                    "exsingel":["Potencia (kW)","Rendimiento estacional (%)","Número de equipos repetidos"],
+                    "exsolar":["Superficie (m2)","Rendimiento estacional (%)","Número de equipos repetidos"],
+                    "exinteracumulador":["Potencia (kW)","Volumen (m3)","Número de equipos repetidos"],
+                    "exdouble":["Potencia (kW) calor","Rendimiento estacional (%) calor","Potencia (kW) frío","Rendimiento estacional (%) frío","Número de equipos repetidos"],
+                    "exrec":["Potencia (kW)","Rendimiento estacional (%)","Potencia recuperación (kW)","Demanda cubierta (%)","Número de equipos repetidos"],
+                    },
+                    "Nuevos":
+                    {
+                        "bdc":["COP nominal","EER nominal","Capacidad Nominal Calefacción (kW)","Capacidad Nominal Refrigeración (kW)","Número de equipos repetidos"],
+                        "calderas":["Uso","Combustible","Potencia útil (kW)","Rendimiento 100 (%)","Número de equipos repetidos"],
+                        "solar":["Área captador (m2)","Número de equipos repetidos"],
+                        "fotovoltaico":["Potencia máxima (W)","Eficiencia Modulo","Area de la célula (m2)","Número de equipos repetidos"],
+                        "mase":["COP refrigeración nominal","Consumo eléctrico nominal (kW)","Potencia refrigeración (kW)","Número de equipos repetidos"]
+            
+                    },
+                    "Complementos":
+                    {
+                        "IC":["Sobredimensionamiento (%)"],
+                        "AC":["Volumen (m3)"],
+                        "BAT":["Pmax CA (KW)","Numero seguidores mppt","Mínima potencia para operar (W)","Capacidad útil (kWh)","Ciclos","Vida útil (años)"]
+                    }
+                } 
+                var Ainfsel = new Array();
+                var datoseconomicos = "NO";
+                if (document.getElementById('sieco').checked == true)
+                    datoseconomicos = "SI";
+                    for (var inp = 0; inp &lt; infinputs.children.length ; inp++)
+                    if (infinputs.children[inp].checked == true)
+                    Ainfsel.push(inp+2);
+                MostrarSpinner();
+                await cargartodoBD();
+                await obtenerdatosedificio();
+                meteenparentesis = function(array)
+                {
+                    var texto = new String();
+                    for (var contnombre = 0; contnombre &lt; array.length; contnombre++) 
+                    {
+                        texto += array[contnombre];
+                        if ((contnombre == 0 || contnombre != array.length - 1) &amp;&amp; array.length > 1)
+                            texto += ",";
+                    }
+                    return texto;
+                }
+                var textoinforme = new String();
+                var textooptim = new String();
+                var foto = "false";
+                if (ADcamposolar != "false")   
+                var foto = "true";
+                else
+                var foto = "false";    
+                var variablepv = 0; 
+                await $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'OPTIMPV', 'pv':foto }).success(function (data) 
+                {
+                    if (data == 2)
+                    {
+                        variablepv = 1;
+                    }
+                })
+
+                textoinforme += 'Definición del caso\r\n';
+                textoinforme += 'Nombre del proyecto = '+objedificiosel.nombredelcaso+'\r\n';
+                textoinforme += 'Tipo de edificio = '+objedificiosel.edificio+'\r\n';
+                textoinforme += 'Localidad = '+objedificiosel.localidad +'\r\n';
+                textoinforme += 'Dirección = '+objedificiosel.via+' '+objedificiosel.nombrevia+' '+objedificiosel.numero+'\r\n';
+                textoinforme += 'Zona Climática = '+objedificiosel.clima+'\r\n';
+                textoinforme += 'Información de la Instalación\r\n';
+                var tcasosseleccionados = meteenparentesis(Ainfsel);
+                textoinforme += ''+getequipos(INFequipos)+'\r\n';
+                textoinforme += 'Datos Económicos = '+datoseconomicos+'\r\n';
+                textoinforme += ''+getdatoseconomicos()+'\r\n';
+                textoinforme += 'Número Casos = '+infcontinput+'\r\n';
+                // textoinforme += 'Instalacion Fotovoltaica = '+foto+'\r\n';
+                textoinforme += 'Casos Seleccionados = ('+tcasosseleccionados+')';
+                //TextoOptim
+                textooptim += 'archivo de llamada de OPTIM\r\n';
+                textooptim += '' + nombremd5 + '.SALEDIM\r\n';
+                textooptim += '' + nombremd5 + '.SALEDIM2\r\n';
+                textooptim += '' + nombremd5 + '.SALTARIM\r\n';
+                textooptim += '' + nombremd5 + '.CASOSPV\r\n';
+                textooptim += '' + nombremd5 + '.RESPV\r\n';
+                textooptim += '' + nombremd5 + '.CASOSTER\r\n';
+                textooptim += '' + nombremd5 + '.RESTER\r\n';
+                textooptim += '' + nombremd5 + '.INFORME\r\n';
+                textooptim += '' + nombremd5 + '.MATRIZ\r\n';
+                textooptim += '' + nombremd5 + '.ERROROPTIM\r\n';
+                textooptim += '' + variablepv + '\r\n';
+                // textooptim += '' + foto + '\r\n';  CAMBIAR ERROR EN CHECKERRORARCHIVO.PHP apartado optim
+                textooptim += '1';
+                // textooptim += '\r\n';
+                if (textoinforme.includes("FALSE"))
+                    return OcultarSpinner();
+               
+                await $http.post("GenerarArchivoInforme.php", { 'md5': nombremd5, 'contenido': textoinforme }).success(function(data, status, headers, config) {
+                    if (data.length &lt; 8) 
+                    {
+                        alert("El archivo del informe INFIM se ha enviado con éxito");
+                        // Hborrardatos.BorrarInforme();
+                        // OcultarSpinner();
+                        $http.post("GenerarArchivoOptim.php", { 'md5': nombremd5, 'contenido': textooptim }).success(function(data, status, headers, config) {
+                            alert('Archivo OPTIM generado con éxito')
+                            OcultarSpinner();
+                        })
+                        .catch(function(error) {
+                            alert('Se ha encontrado el siguiente error:\r\n' + error.data + '');
+                            return OcultarSpinner();
+                        })
+                    }
+                    else 
+                    {
+                        alert("ERROR: El archivo no se ha generado");
+                        OcultarSpinner();
+                    }
+                })
+                .catch(function(error) {
+                    alert('Se ha encontrado el siguiente error:\r\n  ' + error.status + ' ' + error.statusText + '\n : ' + error.data + '');
+                        return OcultarSpinner();
+                    })
+            }
+             /**
+
+        *Comprobamos que los equipos son correctos
+
+        * @param  {object}
+        * @return  {void}
+
+         */
+            getequipos = function (INFequipos)
+            {
+                var objeto = new Object();
+                var Aequipos = new Array();
+                var id;
+                for (var conteq = 0; conteq &lt; ADequipos.length; conteq++)
+                {
+                    var equipoactual = ADequipos[conteq];
+                    if (equipoactual.tipo != "2"  &amp;&amp;  equipoactual.nuex == "Nuevo" &amp;&amp; (equipoactual.tipoequipo != "FVmonocristalino" &amp;&amp; equipoactual.tipoequipo != "FVpolicristalino" &amp;&amp; equipoactual.tipoequipo != "FVPERC" ))
+                    {
+                        var labels = diccionarioequipo(equipoactual,INFequipos); //0 et 1 val
+                        labels.push(equipoactual.nombre.trim()+': "'+equipoactual.nombreequipo+'"'.trim());
+                        Aequipos.push(labels);
+                    } 
+                }
+                var Aaux = new Array();
+                for (var eq = 0; eq &lt; Aequipos.length ; eq++)
+                {
+                    Aaux.push(Aequipos[eq][0]);
+                }
+                Aaux.sort(function (a, b) 
+                {
+                    return b.length - a.length;
+                });
+                var equipomayor = Aaux[0].length;
+    
+                objeto = addobjectjson(equipomayor,Aequipos);
+                for (var p = 0; p&lt; casosParametricosaCalcularManuel.length; p++)
+                {
+                    if (casosParametricosaCalcularManuel[p] == undefined)
+                    {
+                        alert('ERROR: Los datos recibidos de los equipos no tienen el formato correcto');
+                        return "FALSE";   
+                    }
+                    if(casosParametricosaCalcularManuel[p].length == 0)
+                    {
+                    alert('ERROR: Los datos recibidos de los equipos no tienen el formato correcto');
+                    return "FALSE";
+                    }
+                    else
+                    for (var vp = 0; vp &lt; casosParametricosaCalcularManuel[p].length; vp++ )
+                    {
+                        if (casosParametricosaCalcularManuel[p][vp].length != undefined)
+                        {
+                            alert('ERROR: Los datos recibidos de los equipos no tienen el formato correcto')
+                            return "FALSE";
+                        }
+                    }
+                }
+                if (casosParametricosaCalcularManuel.length != 0  &amp;&amp; equiposParam.length > 0)
+                {
+                    //Funcion para cargar a objeto variables parametricas.
+                    var arrayobjeto = Object.keys(objeto);
+                    var Aeqparametrico = new Array();
+                    objeto.parametrico = { }
+                    for (var a = 0; a &lt; casosParametricosaCalcularManuel.length ; a++)
+                    {
+                        id = a+2;
+                        if (Array.isArray(casosParametricosaCalcularManuel[a]))
+                        {
+                                for (var b = 0 ; b &lt; casosParametricosaCalcularManuel[a].length ; b++)
+                                {
+                                    for (var o = 0; o &lt; arrayobjeto.length; o ++)
+                                    {
+                                        if (arrayobjeto[o].includes(casosParametricosaCalcularManuel[a][b].nombre))
+                                        {
+                                            var equipo = casosParametricosaCalcularManuel[a][b];
+                                            equipo = diccionarioparametrico(equipo,INFequipos);
+                                            equipo.push(casosParametricosaCalcularManuel[a][b].nombreequipo+': "'+casosParametricosaCalcularManuel[a][b].nombre+'"'.trim());
+                                            Aeqparametrico.push(equipo);
+                                        }
+                                    }
+                                }
+                        }
+                        else 
+                        {
+                              for (var o = 0; o &lt; arrayobjeto.length; o ++)
+                            {
+                                if (arrayobjeto[o].includes(casosParametricosaCalcularManuel[a].nombre))
+                                {
+                                    var equipo = casosParametricosaCalcularManuel[a];
+                                    equipo = diccionarioparametrico(equipo,INFequipos);
+                                    equipo.push(casosParametricosaCalcularManuel[a].nombreequipo+': "'+casosParametricosaCalcularManuel[a].nombre+'"'.trim());
+                                    Aeqparametrico.push(equipo);
+                                }
+                            }  
+                        }
+                        var Alongitud = new Array();
+                        if (Aeqparametrico.length == 0)
+                        {
+                            alert('ERROR: Los datos recibidos de los equipos no tienen el formato correcto');
+                            return "FALSE";  
+                        }
+                        for (var error= 0 ; error &lt; Aeqparametrico.length; error++)
+                        {
+                            if (error != 0)
+                            if (Alongitud.includes(Aeqparametrico[error].length) == false)
+                           {
+                            alert('ERROR: Los datos recibidos de los equipos no tienen el formato correcto');
+                            return "FALSE";
+                           }
+                            Alongitud.push(Aeqparametrico[error].length)
+                        }
+
+                        objeto.parametrico[id] = addobjectjson(equipomayor,Aeqparametrico);
+                    }
+                }
+                var asJSON = JSON.stringify(objeto);
+                var asJSON2 = JSON.stringify(objeto,null," ");
+                return asJSON;
+            }
+            /**
+
+        *Añadimos los equipos al json
+
+        * @param  {number}
+        * @return  {void}
+
+         */
+            addobjectjson = function (equipomayor,Aequipos)
+            {
+                var Oout = new Object;
+                for (var eq = 0; eq &lt; Aequipos.length ; eq++)
+                {
+                    if (Aequipos[eq][0].length &lt; equipomayor)
+                    {
+                        while (Aequipos[eq][0].length != equipomayor)
+                        {
+                            Aequipos[eq][0].push("");
+                            Aequipos[eq][1].push("");
+                            }
+                    }
+                    var obj = new Object;
+                    for (var i = 0; i &lt; Aequipos[eq][0].length; i++)
+                    {
+                            if (Aequipos[eq][0][i] != "")
+                        obj[Aequipos[eq][0][i]] = Aequipos[eq][1][i];
+                        else 
+                        obj["z"+i] = Aequipos[eq][1][i];
+                    }
+                    Oout[Aequipos[eq][2]] = obj;
+                }
+                return Oout;
+            }
+            /**
+
+        *Sacamos los datos económicos
+
+        * @return  {void}
+
+         */
+            getdatoseconomicos = function ()
+            {
+                var Oout = new Object();
+                var Alabel =  Object.keys(ADfacturacion[0]);
+                var Avalue =  Object.values(ADfacturacion[0]);
+               for (var a = 0; a &lt; Alabel.length;a++)
+               switch(Alabel[a])
+               {
+                    case "periodo":
+                    case "interes":
+                    case "costemantenimiento":
+                    case "subvenciones":
+                    case "reduccionimpuestos":
+                    if (Avalue[a] == null || Avalue[a] == "")
+                    {
+                        alert('ERROR: Facturación energética con datos nulos')
+                        return "FALSE";
+                    }
+                    Oout[Alabel[a]] = Avalue[a];
+                    break;
+               }
+               return JSON.stringify(Oout); 
+            }
+             /**
+
+        *Preparamos el diccioario
+        
+        * @param  {string}
+        * @return  {void}
+
+         */
+            diccionarioparametrico = function (equipo,INFequipos)
+            {
+                var resE = new Array();
+                var resV = new Array();
+                getnumeroequipos = function (nombre)
+                {
+                    for (var eq = 0 ; eq &lt; ADequipos.length ; eq++)
+                    {
+                        if (nombre == ADequipos[eq].nombreequipo &amp;&amp; ADequipos[eq].tipo != "2" &amp;&amp; ADequipos[eq].nuex == "Nuevo")
+                        return ADequipos[eq].numequiposiguales;
+                    }
+                }
+                /**
+
+        *En varias de las funcione siguientes se crean los diccionarios de los diferentes equipos
+        * @param  {object}
+        * @return  {void}
+
+         */
+                getvalservicioparametrico = function (equipo)
+                {
+                    $.each(equipo,function(index, value) 
+                    {
+                        switch(index)
+                        {
+                            case "fabricante":
+                                resE.splice(0,0,"Fabricante")
+                                resV.splice(0,0,value);
+                            break;
+                            case "modelo":
+                                resE.splice(1,0,"Modelo")
+                                resV.splice(1,0,value);
+                            break;
+                            case "tipo":
+                                resE.splice(2,0,"Tipo")
+                                resV.splice(2,0,value);
+                            break;
+                        }
+                    })
+                }
+                switch (equipo.tipoequipo.trim())
+                {
+                    case "SolarTubosVacio":
+                    case "SolarPlana":
+                        $.each(INFequipos.Nuevos.solar,function(index,value)
+                        {
+                            resE.push(value)
+                        })
+                        $.each(equipo,function(index, value) 
+                        {
+                            switch (index)
+                            {
+                                case "area_captador_m2": // Area
+                                // case "Número de colectores": //Equipos Iguales
+                                    resV.push(value);
+                                    break;
+                            }
+                        })
+                    getvalservicioparametrico(equipo);    
+                    break;
+                    case "bombacaloraireagua":
+                    case "bombacaloraguaagua":
+                    case "enfriadorarecuperacion":
+                        $.each(INFequipos.Nuevos.bdc,function(index,value)
+                        {
+                            resE.push(value)
+                        })
+                        $.each(equipo,function(index, value) 
+                        {
+                            switch (index)
+                            {
+                                case "COP nominal": // COP
+                                case "EER nominal": // EER
+                                case "capacidad_nominal_calefaccion_kw": // Calefacción
+                                // case "numequiposiguales": //Equipos Iguales
+                                    resV.push(value);
+                                break;
+                                case "capacidad_nominal_refrigeracion_kw": // Refrigeración
+                                    // resV.splice(resV.length-1,0,value);
+                                    resV.push(value);
+                                break;
+                            }
+                        })
+                    getvalservicioparametrico(equipo);
+                break;
+                case "CalderasBiomasa":
+                case "CalderasCondensacion":
+                case "CalderasBT":
+                    $.each(INFequipos.Nuevos.calderas,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    $.each(equipo,function(index, value) 
+                    {
+                        switch (index)
+                        {
+                            case "Uso": // Uso
+                            case "Combustible": // Combustible
+                            case "Potencia útil (kW)": // Potencia
+                            case "Rendimiento 100 (%)": // Rendimiento
+                            // case "numequiposiguales": //Equipos Iguales
+                                resV.push(value);
+                            break;
+                        }
+                    })
+                getvalservicioparametrico(equipo);
+                break;
+                case "AbsorcionSimple":
+                $.each(INFequipos.Nuevos.mase,function(index,value)
+                {
+                    resE.push(value)
+                })
+                $.each(equipo,function(index, value) 
+                {
+                    switch (index)
+                    {
+                        case "potencia_refrigeracion_kw": // Uso
+                        case "consumo_electrico_condiciones_nominales_kw": // Combustible
+                        case "cop_refrigeracion_nominal": // Potencia
+                            resV.push(value);
+                        break;
+                    }
+                })
+                getvalservicioparametrico(equipo);
+                break;
+                }
+                var numeroequipos = getnumeroequipos(equipo.nombre);
+                resV.push(numeroequipos);
+                resE.splice(resE.indexOf("Número de equipos repetidos"),1)
+                resE.push("Número de equipos repetidos");
+                if ((resE.length == 0 || resV.length == 0) &amp;&amp; resE.length != resV.length)
+                {
+                alert('ERROR: En equipo '+equipo.tipoequipo+' con el nombre '+equipo.nombreequipo+'');
+                return OcultarSpinner();
+                }
+                var resF = new Array();
+                resF.push(resE);
+                resF.push(resV);
+                return resF; 
+            }
+            /**
+
+        *Diccionario para generar INFIM
+        *En varias de las funcione siguientes se crean los diccionarios de los diferentes equipos
+        * @param  {object}
+        * @return  {void}
+
+         */
+            diccionarioequipo = function (equipo,INFequipos)
+            {
+                var resE = new Array();
+                var resV = new Array();
+            singelex = function (equipo)
+            {
+                $.each(equipo,function(index, value) 
+                {
+                    switch (index)
+                    {
+                        case "atr1": // campo1
+                        case "atr2": // campo2
+                        case "numequiposiguales": //Equipos Iguales
+                            resV.push(value);
+                        break;
+                        case "valoresservicio1": // Fabricante 
+                        resE.splice(0,0,"Fabricante")
+                        resV.splice(0,0,value);
+                    break;
+                    case "valoresservicio2": // Modelo
+                        resE.splice(1,0,"Modelo")
+                        resV.splice(1,0,value);
+                    break;
+                    case "valoresservicio3": // Tipo
+                        resE.splice(2,0,"Tipo")
+                        resV.splice(2,0,value);
+                    break;
+                }
+            }) 
+        }
+        singelcom = function (equipo)
+        {
+            $.each(equipo,function(index, value) 
+            {
+                switch (index)
+                {
+                    case "atr1": // campo1
+                        resV.push(value);
+                    break;
+                    case "valoresservicio1": // Fabricante 
+                        resE.splice(0,0,"Fabricante")
+                        resV.splice(0,0,value);
+                    break;
+                    case "valoresservicio2": // Modelo
+                        resE.splice(1,0,"Modelo")
+                        resV.splice(1,0,value);
+                    break;
+                    case "valoresservicio3": // Tipo
+                        resE.splice(2,0,"Tipo")
+                        resV.splice(2,0,value);
+                    break;
+                }
+            }) 
+        }
+        tripleatr = function (equipo)
+        {
+            $.each(equipo,function(index, value) 
+            {
+                switch (index)
+                {
+                    case "atr1": // campo1
+                    case "atr2":
+                    case "atr3":
+                    case "numequiposiguales": //Equipos Iguales
+                        resV.push(value);
+                    break;
+                    case "valoresservicio1": // Fabricante 
+                        resE.splice(0,0,"Fabricante")
+                        resV.splice(0,0,value);
+                    break;
+                    case "valoresservicio2": // Modelo
+                        resE.splice(1,0,"Modelo")
+                        resV.splice(1,0,value);
+                    break;
+                    case "valoresservicio3": // Tipo
+                        resE.splice(2,0,"Tipo")
+                        resV.splice(2,0,value);
+                    break;
+                }
+            }) 
+        }
+        getvalservicio = function (equipo)
+        {
+            $.each(equipo,function(index, value) 
+            {
+                switch (index)
+                {
+                    case "valoresservicio1": // Fabricante 
+                        resE.splice(0,0,"Fabricante");
+                        resV.splice(0,0,value);
+                    break;
+                    case "valoresservicio2": // Modelo
+                        resE.splice(1,0,"Modelo");
+                        resV.splice(1,0,value);
+                    break;
+                    case "valoresservicio3": // Tipo
+                        resE.splice(2,0,"Tipo");
+                        resV.splice(2,0,value);
+                    break;
+                }
+            })      
+        }
+            switch (equipo.tipoequipo.trim())
+            {
+                case "ex_calderas": //
+                case "ex_enfriadora": //
+                case "ex_calderabiomasa": //
+                case "ex_calderacondensacion": //
+                case "ex_autonomocalor": //
+                case "ex_autonomofrio": //
+                case "ex_mase":
+                    $.each(INFequipos.Existentes.exsingel,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    singelex(equipo);
+                break;
+                case "ex_solartermica": //
+                case "ex_sttubosvacio": //
+                case "ex_stcaptadorplano": //
+                case "ex_sfotovoltaica": //
+                    $.each(INFequipos.Existentes.exsolar,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    singelex(equipo);
+                break;
+                case "ex_bdcaireagua":
+                case "ex_bombadecalor":
+                case "ex_bdcaguaagua":
+                case "ex_perecuperacion": 
+                if (equipo.busa != "-" &amp;&amp; equipo.busg != "-")
+                {
+                    $.each(INFequipos.Existentes.exdouble,function(index,value)
+                    {
+                        resE.push(value)
+                    }) 
+                    $.each(equipo,function(index, value) 
+                    {
+                        switch (index)
+                        {
+                            case "atr1": //Potencia calor
+                            case "atr2": // Rendimiento calor
+                            case "atr3": // Potencia frío
+                            case "atr4": //Rendimiento frío
+                            case "numequiposiguales": //Equipos Iguales
+                                resV.push(value);
+                        break;
+                    }
+                }) 
+                getvalservicio(equipo);     
+                }
+                else
+                {
+                    $.each(INFequipos.Existentes.exsingel,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    singelex(equipo); 
+                }    
+                break;
+                    case "ex_interacumuladorelectrico":
+                    $.each(INFequipos.Existentes.exinteracumulador,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    singelex(equipo);
+                        break; 
+                    //---------------------------
+                    case "AlmacenamientoSensible":
+                    case "AlmacenamientoSensible1":
+                    case "AlmacenamientoSensible2":
+                    case "AlmacenamientoSensible3":
+                    case "AlmacenamientoSensible4":
+                        $.each(INFequipos.Complementos.AC,function(index,value)
+                        {
+                            resE.push(value)
+                        })
+                        singelcom(equipo);
+                        break;
+                        case "Intercambiadores":
+                        case "Intercambiadores1":
+                        case "Intercambiadores2":
+                        case "Intercambiadores3":
+                        case "Intercambiadores4":
+                            $.each(INFequipos.Complementos.IC,function(index,value)
+                            {
+                                resE.push(value)
+                            })
+                            singelcom(equipo);
+                            break;
+                            case "FVInversoresBateria":
+                            $.each(INFequipos.Complementos.BAT,function(index,value)
+                            {
+                                resE.push(value)
+                            })
+                            $.each(equipo,function(index, value) 
+                            {
+                                switch (index)
+                                {
+                                    case "atr4": // Pmax
+                                    case "atr5": // num seguidores
+                                    case "atr6": // Pmin
+                                    case "atr7": // capacidad
+                                    case "atr8": // ciclos
+                                    case "atr9": // vida
+                                        resV.push(value);
+                                    break;
+                                    case "valoresservicio3": // Fabricante 
+                                        resE.splice(0,0,"Fabricante")
+                                        resV.splice(0,0,value);
+                                    break;
+                                    case "valoresservicio4": // Modelo
+                                        resE.splice(1,0,"Modelo")
+                                        resV.splice(1,0,value);
+                                    break;
+                                    case "valoresservicio5": // Tipo
+                                        resE.splice(2,0,"Tipo")
+                                        resV.splice(2,0,value);
+                                    break;
+                                }
+                            }) 
+                            break;
+                    //---------------------------
+                    case "SolarTubosVacio":
+                    case "SolarPlana":
+                        $.each(INFequipos.Nuevos.solar,function(index,value)
+                        {
+                            resE.push(value)
+                        })
+                        $.each(equipo,function(index, value) 
+                        {
+                            switch (index)
+                            {
+                                case "atr1": // Area
+                                case "numequiposiguales": //Equipos Iguales
+                                    resV.push(value);
+                                break;
+                            }
+                        })
+                getvalservicio(equipo);
+                break;
+                case "CalderasBiomasa":
+                case "CalderasCondensacion":
+                case "CalderasBT":
+                    $.each(INFequipos.Nuevos.calderas,function(index,value)
+                    {
+                        resE.push(value)
+                    })
+                    $.each(equipo,function(index, value) 
+                    {
+                        switch (index)
+                        {
+                            case "atr1": // Uso
+                            case "atr2": // Combustible
+                            case "atr3": // Potencia
+                            case "atr6": // Rendimiento
+                            case "numequiposiguales": //Equipos Iguales
+                                resV.push(value);
+                            break;
+                        }
+                    })
+            getvalservicio(equipo);
+            break;
+        case "AbsorcionSimple":
+            $.each(INFequipos.Nuevos.mase,function(index,value)
+            {
+                resE.push(value)
+            })
+            tripleatr(equipo);
+        break;
+        case "FVmonocristalino":
+        case "FVpolicristalino":
+        case "FVPERC":
+            $.each(INFequipos.Nuevos.fotovoltaico,function(index,value)
+            {
+                resE.push(value)
+            })
+            tripleatr(equipo);
+        break;
+        case "bombacaloraireagua":
+        case "bombacaloraguaagua":
+        case "enfriadorarecuperacion":
+            $.each(INFequipos.Nuevos.bdc,function(index,value)
+            {
+                resE.push(value)
+            })
+            $.each(equipo,function(index, value) 
+            {
+                switch (index)
+                {
+                    case "atr1": // COP
+                    case "atr4": // EER
+                    case "atr7": // Calefacción
+                    case "numequiposiguales": //Equipos Iguales
+                        resV.push(value);
+                    break;
+                    case "atr10": // Refrigeración
+                        resV.splice(resV.length-1,0,value);
+                    break;
+                }
+            })
+        getvalservicio(equipo);
+    break;
+    }
+    if ((resE.length == 0 || resV.length == 0) &amp;&amp; resE.length != resV.length)
+    {
+        alert('ERROR: En equipo '+equipo.nombre+'');
+        return OcultarSpinner();
+    }
+    var resF = new Array();
+    resF.push(resE);
+    resF.push(resV);
+    return resF; 
+            }
+            /**
+
+        *Cargar PDF
+
+        * @return  {void}
+
+         */
+            cargarinforme = async function () {
+                await obtenerdatosedificio();
+                $http.post("CheckErrorArchivo.php", { 'md5': nombremd5, 'tipoarchivo': 'INFIM' }).success(function (data, status, headers, config) {
+                    $http.post("cargarpdfv2.php",{'md5': nombremd5},{responseType: "arraybuffer",dataType:'blob'}).success(function(data, status, headers, config) {
+                        var file = new Blob([(data)], {type: 'application/pdf'});
+                        var fileURL = URL.createObjectURL(file);
+                        window.open(fileURL);
+                        const link = document.createElement('a');
+                        link.href = fileURL;
+                        link.download = ''+objedificiosel.nombredelcaso+'.pdf';
+                        document.body.append(link);
+                        link.click();
+                        link.remove();
+                    }).catch(function (error) {
+                        alert('Se ha encontrado el siguiente error:\r\n' + 'Archivo pdf no encontrado.' + '');
+                        alert('Si ha generado el archivo de informe con éxito, espere un poco a que sea calculado.');
+                        return OcultarSpinner();
+                    })
+                }).catch(function (error) {
+                    alert('Ha habido un error al generar el informe:\r\n ' + error.data + '');
+                    return OcultarSpinner();
+                });
+            }
+        }
+        LoaderDemandas(),LoaderConsumos(),LoaderIntegrado(),LoaderInforme();
+    }
+    ResultadosGraficos = function ()
+    {
+        
+        PaginaInicioGraficos = function()
+        {
+            /**
+
+        *Carga interfaz
+        * @param  {object}
+        * @return  {void}
+
+         */
+            uploadGraficas = async function (arcCLi) {
+                var menu = "";
+                var numparametrico;
+                if (Array.isArray(arcCLi) == true)
+                    numparametrico = arcCLi.length;
+                    //Creamos la interfaz
+                menu += "&lt;div id='chart_div'>&lt;/div>";
+                menu += "&lt;div style = 'display: flex; flex-wrap: wrap; justify-content: space-between;'>";
+                menu += "&lt;div style='display: inline-block; margin-bottom:20px; margin-right:30px;'>";
+                menu += "&lt;span style='font-size: 18px; margin-right: 6px;'>Fecha Inicial&lt;/span>";
+                menu += "&lt;input type='date' id='date' onclick='activar()'style='transform:scale(1);display:flex;' />";
+                menu += "&lt;/div>";
+                menu += "&lt;div style='display: inline-block; margin-bottom:10px;' >";
+                menu += "&lt;span style='font-size: 18px; margin-right: 15px;'>Fecha Final&lt;/span>";
+                menu += "&lt;input type='date' id='datef' onclick='activar()' disabled='true' style='transform:scale(1);display:flex;'/>";
+                menu += "&lt;/div>";
+                menu += "&lt;div style='margin-left:30px;margin-right:30px;'>";
+                menu += "&lt;div style='margin-bottom: 10px;'>&lt;input type='radio' value='Mensual' name='tipo' id='gmensual' onclick='selecciontipo()' disabled='true' style='margin-right:10px;'>&lt;label id='ValoresMensuales'>Valores Mensuales&lt;/label>&lt;/div>";
+                menu += "&lt;div style='margin-bottom: 10px;'>&lt;input type='radio' value='Horario' name='tipo' id='ghorario' onclick='selecciontipo()' disabled='true' style='margin-right:10px;' >&lt;label id='ValoresHorarios'>Valores Horarios&lt;/label>&lt;/div> ";
+                menu += "&lt;div>&lt;input type='checkbox' value='Tabla' id='gtabla' style='margin-right:10px;'>&lt;label>Tabla Datos&lt;/label>&lt;/div>";
+                menu += "&lt;/div>";
+                menu += "&lt;/div>";
+                menu += "&lt;div id='divparametrico' style='display:none;'>&lt;label>Número total de casos calculados: &lt;/label>&lt;span>" + numparametrico + "&lt;/span>";
+                menu += "&lt;form style='display:none;' id='formselparametrico'>";
+                menu += "&lt;div class='multiselect'>";
+                    menu += "&lt;div  class='selectBox' onclick='showCheckboxes(selparametrico.id)'>";
+                    menu += "&lt;select style ='width: auto;text-align: center; text-align-last: center;'>";
+                    menu += "&lt;option>Selecciona Resultado&lt;/option>";
+                    menu += "&lt;/select>";
+                    menu += "&lt;div class='overSelect'>&lt;/div>";
+                    menu += "&lt;/div>";
+                    menu += "&lt;div id='selparametrico' style='width:fit-content;border: 1px #dadada solid;display:none;'  >";
+                    menu += "&lt;/div>";
+                    menu += "&lt;/div>";
+                    menu += "&lt;/form>";
+                menu += "&lt;/div>"
+                menu += "&lt;div id = 'selvalor' style='display:none; margin-top:10px;' >";
+                menu += "&lt;form>";
+                menu += "&lt;div class='multiselect'>";
+                menu += "&lt;div class='selectBox' onclick='showCheckboxes(checkboxes.id)'>";
+                menu += "&lt;select style ='width: auto;text-align: center; text-align-last: center;'>";
+                menu += "&lt;option>Selecciona Valor&lt;/option>";
+                menu += "&lt;/select>";
+                menu += "&lt;div class='overSelect'>&lt;/div>";
+                menu += "&lt;/div>";
+                menu += "&lt;div id='checkboxes' style='width:fit-content'  >";
+                menu += "&lt;/div>";
+                menu += "&lt;/div>";
+                menu += "&lt;/form>";
+                menu += "&lt;/div>";
+                menu += "&lt;div>";
+                menu += " &lt;button id='actualizarvalores' style='display:none;background-color:orange;margin-right:15px;' class='btnMenu' onclick='drawChart()'>Actualizar Valores&lt;/button>"
+                menu += "&lt;button style='background-color:orangered;display:inline-block' onclick='PaginaInicioResultados()' class='btnMenu'>Volver&lt;/button>"
+                menu += "&lt;button id='bexportcsv' class='btnMenu' style='display:none;margin-top:50px;' onclick='exportarcsv()'>&lt;a id='Export' href='#'>Exportar datos a archivo CSV&lt;/a>&lt;/button>"
+                menu += "&lt;/div>";
+                menu += "&lt;div id='table_div'  style='display:none'>&lt;/div>";
+                document.getElementById("contenido").innerHTML = menu;
+                if (integrado == 1)
+                    ValoresHorarios.innerText = 'Valores Anuales';
+                OcultarSpinner();
+                document.getElementById("contenido").innerHTML.width
+                document.getElementById("esquema2").innerHTML = "";
+                $(document).ready(function () {
+                    $("#ghorario").attr("checked", "checked");
+                }
+                )
+                document.getElementById("gtabla").addEventListener("click", function () {
+                    if (gtabla.checked == true)
+                        table_div.style.display = "block";
+                    else
+                        table_div.style.display = "none";
+                });
+                if (Array.isArray(arcCLi) == true)
+                {
+                    divparametrico.style.display = 'block';
+                    if (arcCLi.length > 1)
+                    {
+                        formselparametrico.style.display = "flex";
+                        await Selectintegrado(arcCLi);
+                    }
+                }
+                datef.addEventListener("change", function () {
+                    if (datef.value &lt; date.value) {
+                        ghorario.style.display = "none";
+                        gmensual.style.display = "none";
+                        selvalor.style.display = "none";
+                        ValoresMensuales.style.display = "none";
+                        ValoresHorarios.style.display = "none";
+                        actualizarvalores.style.display = "none";
+                    }
+                    else {
+                        gmensual.style.display = "inline-block";
+                        ghorario.style.display = "inline-block";
+                        selvalor.style.display = "inline-block";
+                        ValoresMensuales.style.display = "inline-block";
+                        ValoresHorarios.style.display = "inline-block";
+                        actualizarvalores.style.display = "inline-block";
+                    }
+                });
+                //Desactivamos o activamos secciones en función del evento
+                date.addEventListener("click", function () {
+                    if (datef.value &lt; date.value) {
+                        ghorario.style.display = "none";
+                        gmensual.style.display = "none";
+                        selvalor.style.display = "none";
+                        ValoresMensuales.style.display = "none";
+                        ValoresHorarios.style.display = "none";
+                        actualizarvalores.style.display = "none";
+                    }
+                    else {
+                        gmensual.style.display = "inline-block";
+                        ghorario.style.display = "inline-block";
+                        selvalor.style.display = "inline-block";
+                        ValoresMensuales.style.display = "inline-block";
+                        ValoresHorarios.style.display = "inline-block";
+                        actualizarvalores.style.display = "inline-block";
+                    }
+                });
+                datef.addEventListener("click", function () {
+                    if (datef.value &lt; date.value) {
+                        ghorario.style.display = "none";
+                        gmensual.style.display = "none";
+                        selvalor.style.display = "none";
+                        ValoresMensuales.style.display = "none";
+                        ValoresHorarios.style.display = "none";
+                        actualizarvalores.style.display = "none";
+                    }
+                    else {
+                        gmensual.style.display = "inline-block";
+                        ghorario.style.display = "inline-block";
+                        selvalor.style.display = "inline-block";
+                        ValoresMensuales.style.display = "inline-block";
+                        ValoresHorarios.style.display = "inline-block";
+                        actualizarvalores.style.display = "inline-block";
+                    }
+                });
+                date.addEventListener("change", function () {
+                    if (datef.value &lt; date.value || date.value == "") {
+                        ghorario.style.display = "none";
+                        gmensual.style.display = "none";
+                        selvalor.style.display = "none";
+                        ValoresMensuales.style.display = "none";
+                        ValoresHorarios.style.display = "none";
+                        actualizarvalores.style.display = "none";
+                    }
+                    else {
+                        gmensual.style.display = "inline-block";
+                        ghorario.style.display = "inline-block";
+                        selvalor.style.display = "inline-block";
+                        ValoresMensuales.style.display = "inline-block";
+                        ValoresHorarios.style.display = "inline-block";
+                        actualizarvalores.style.display = "inline-block";
+                    }
+                });
+            }
+            /**
+
+        *Carga ejecución
+        * @return  {void}
+
+         */
+            activar = function () {
+                var año = new Date;
+                if (date.value == 0) {
+                    var fini = año.getFullYear() + '-01' + '-01'
+                    date.value = fini;
+                }
+                if (datef.value == 0 || datef.value == null) {
+                    var ffinal = año.getFullYear() + '-12' + '-31'
+                    datef.value = ffinal;
+                }
+                date.setAttribute("min", año.getFullYear() + '-01' + '-01');
+                date.setAttribute("max", año.getFullYear() + '-12' + '-31');
+                datef.setAttribute("min", año.getFullYear() + '-01' + '-01');
+                datef.setAttribute("max", año.getFullYear() + '-12' + '-31');
+                if (cargar == 0) {
+                    if (date.value != 0)
+                        datef.disabled = false;
+                    if (datef.value >= date.value &amp;&amp; cargar == 0) {
+                        ghorario.disabled = false;
+                        gmensual.disabled = false;
+                        $("#ghorario").click();
+                        if (date.value &lt;= datef.value) {
+                            gmensual.style.display = "inline-block";
+                            ghorario.style.display = "inline-block";
+                            selvalor.style.display = "inline-block";
+                            ValoresMensuales.style.display = "inline-block";
+                            ValoresHorarios.style.display = "inline-block";
+                            actualizarvalores.style.display = "inline-block";
+                            drawChart();
+                        }
+                    }
+                }
+            }
+        }
+        HerramientasGraficos = function ()
+        {
+            /**
+
+        *Selecciona representación horaria/mensual
+        * @return  {void}
+
+         */
+            checkconsumos = function () 
+            {
+                var consumocalor = 0;
+                var consumofrio = 0;
+                var consumoacs = 0;
+                for (var b = 0; b &lt; ADbusescasos.length ; b++)
+                {
+                    var busactual = ADbusescasos[b];
+                    if ((busactual.nuex == "Existente" &amp;&amp; demanda == 1) || (busactual.nuex == "Nuevo" &amp;&amp; consumo == 1))
+                        for (var c = 0 ; c &lt; ADbus.length; c++)
+                        {
+                            var colectoractual = ADbus[c]
+                            if (colectoractual.id == busactual.idbus)
+                            {
+                                if (colectoractual.idtipobus == 1 || colectoractual.id == 5)  
+                                    consumocalor = consumocalor + parseFloat(busactual.consumoc);   
+                                if (colectoractual.idtipobus == 2 || colectoractual.id == 5) 
+                                    consumofrio = consumofrio + parseFloat(busactual.consumof);
+                                if (colectoractual.id == 11 || colectoractual.id == 5)
+                                    consumoacs = consumoacs + parseFloat(busactual.consumoacs);
+                            }    
+                        }
+                }
+                if (consumofrio > 100 || consumocalor > 100 || consumoacs > 100)
+                {
+                    var instalacion = "";
+                    if (demanda == 1) instalacion = "de referencia";
+                    if (consumo == 1) instalacion = "nueva";   
+                    alert('ERROR: El porcentaje de consumo total es superior a 100\r\nConsumo Calefacción: '+consumocalor+'\r\nConsumo Refrigeración: '+consumofrio+'\r\nConsumo ACS: '+consumoacs+'\r\n\r\nPor favor, cambie el total de consumo en los servicios correspondientes de la instalación '+instalacion+'');
+                    return true;
+                }
+            }
+            /**
+
+        *Selecciona representación horaria/mensual
+        * @return  {void}
+
+         */
+            selecciontipo = function () {
+                dataArray = [['Horas']];
+                if (document.getElementById('ghorario').checked == true)
+                    radsel = 0;
+                if (document.getElementById('gmensual').checked == true)
+                    radsel = 1;
+            }
+            /**
+
+        *Añade cabeceras adicionales piscina
+        * @param  {object}
+        * @return  {void}
+
+         */
+            resultadospiscina = function (instalacion) {
+                var haycal = 0;
+                var hayref = 0;
+                var hayacs = 0;
+                //añade unas cabeceras extra de consumo a la piscina
+                for (var eqexistente = 0; eqexistente &lt; ADequipos.length; eqexistente++) 
+                    if (ADequipos[eqexistente].nuex == instalacion &amp;&amp; ADequipos[eqexistente].busg == "-" ) 
+                        for (var numcol = 0; numcol &lt; ADbusescasos.length; numcol++) 
+                            if (ADbusescasos[numcol].nombre == ADequipos[eqexistente].busa &amp;&amp; ADbusescasos[numcol].nuex== instalacion)
+                                switch (ADequipos[eqexistente].nombre)
+                                {
+                                    case "Calefacción Alta":
+                                    case "Calefacción Media":
+                                        haycal = 1;
+                                    break;
+                                    case "Frio Climatizacion":
+                                        hayref = 1;
+                                    break;
+                                    case "ACS":
+                                        hayacs = 1;
+                                    break;
+                                    case "Piscina":
+                                        porcentajepiscina.acs = ADbusescasos[numcol].consumoacs;
+                                        porcentajepiscina.cal = ADbusescasos[numcol].consumoc;
+                                        porcentajepiscina.ref = ADbusescasos[numcol].consumof;
+                                    break;
+                                }
+                if(haycal == 1)
+                    arraypiscina.push("Calefacción Piscina [W]");
+                if (hayref == 1)
+                    arraypiscina.push("Refrigeración Piscina [W]");
+                if (hayacs == 1)
+                    arraypiscina.push("Acs Piscina [W]");
+                if (porcentajepiscina.cal == undefined || porcentajepiscina.ref == undefined || porcentajepiscina.acs == undefined )
+                {
+                    porcentajepiscina.cal = 0;
+                    porcentajepiscina.ref = 0;
+                    porcentajepiscina.acs = 0;
+                } 
+                var supera100 = checkconsumos();
+                if (supera100 == true ) return ;
+                arrayselect = arrayselect.concat(arraypiscina);
+                addOptions(arrayselect);
+            }
+            /**
+
+        *Suma mensual
+        * @param  {object}
+        * @return  {void}
+
+         */
+        sumamensual = function(seleccion)
+        {
+            //Suma todos los valores
+            for (var i = 0; i &lt; seleccion.length; i++) {
+                var numeroNuevo = parseFloat(seleccion[i]);
+                var numeroActual = parseFloat(sumaArray[i]);
+                //si es uno devuelve ese valor si no devuelve la suma
+                if (n == 1)
+                    sumaArray[i] = numeroNuevo;
+                else
+                    sumaArray[i] = numeroActual + numeroNuevo;
+            }
+        }
+            /**
+
+        *Media Mensual
+        * @param  {array}
+        * @return  {void}
+
+         */
+            mediamensual = function(Meses)
+            {
+                miniArray.push(Meses[contmeses]);
+                contmeses++;
+                for (var j = 0; j &lt; sumaArray.length; j++)
+                    mediaArray[j] = sumaArray[j] / n;
+                    for (var i = 0; i &lt; elementosSel.length; i++)
+                    {
+                        var unidad = arrayselect[elementosSel[i]].substring(arrayselect[elementosSel[i]].lastIndexOf("[") + 1, arrayselect[elementosSel[i]].lastIndexOf("]"));
+                        if (unidad == "")
+                        unidad = arrayselect[elementosSel[i]].trim().substring(arrayselect[elementosSel[i]].indexOf("F")-1, arrayselect[elementosSel[i]].indexOf("O "))
+                        if (unidad =="FUNCIONAMIENTO")
+                        miniArray.push(parseFloat(sumaArray[elementosSel[i]])); 
+                        if (unidad == "W")   
+                          miniArray.push(parseFloat(sumaArray[elementosSel[i]]) / 1000); //1000 para pasarlo a Kw en mensual 
+                        if (unidad != "W" &amp;&amp; unidad != "FUNCIONAMIENTO") 
+                        miniArray.push(parseFloat(mediaArray[elementosSel[i]]));
+                    }
+                dataArray.push(miniArray);
+                n = 0;
+                suma = 0;
+                sumaArray = [];
+                mediaArray = [];
+                return 1;
+            }
+            /**
+
+        *Array de suma para valores mensuales.
+        * @return  {void}
+
+         */
+            sumararray = function (a, b) {
+                return a + b;
+            };
+            /**
+
+        *Exportar archivo excel
+        * @return  {void}
+
+         */
+            exportarcsv = function () {
+                //ocalizamos el archivo excel
+                var csv = google.visualization.dataTableToCsv(datoscsv);
+                var start = dataArray[0].join(',')+"\r\n";
+                csv = start+csv;
+                var encodedUri = 'data:application/csv;charset=UTF-16BE,' + encodeURIComponent(csv);
+                Export.href = encodedUri;
+                Export.download = ''+objedificiosel.nombredelcaso+'.CSV';
+                Export.target = '_blank';
+            }
+            /**
+
+        *Adapta el grafico a la pantalla
+        * @return  {void}
+
+         */
+            $(window).resize(function () {
+                if (cargar == 1)
+                    drawChart(elementosSel);
+            });
+            /**
+
+        *Selector etiqueta piscina para consumo
+        * @return  {void}
+
+         */
+            getidservicio = function (nombre)
+            {
+                for (var i = 0; i &lt; ADequipos.length ; i++)
+                {
+                    var equipoactual = ADequipos[i];
+                    if (equipoactual.nombre.includes(nombre) &amp;&amp; equipoactual.nuex == "Nuevo" &amp;&amp; equipoactual.tipo == "2")
+                    return equipoactual.id;
+                }
+            }
+            /**
+
+        *Check si ha cambiado la nueva instalación para consumo
+        * @return  {void}
+
+         */
+            checkinstalacion = function()
+            {
+                var Aids = new Array();
+                for (var i = 0; i &lt; ADequipos.length ; i++)
+                {
+                    var equipoactual = ADequipos[i];
+                    if (equipoactual.nuex == "Nuevo" &amp;&amp; equipoactual.tipo == "2")
+                    {
+                        Aids.push(equipoactual.id);
+                    }
+                }
+                for (var a = 0; a &lt; arrayselect.length ; a++)
+                {
+                    for (var b = 0; b &lt; Aids.length;b++)
+                    {
+                        if(arrayselect[a].includes(Aids[b]))
+                        return true;
+                    }
+                    
+                }
+                return false;
+            }
+            getservicios = function()
+            {
+                //Sacamos el id de los colectores
+                    var idcalAlta = getidservicio("Calefacción Alta");
+                    var idcalMedia = getidservicio("Calefacción Media");
+                    var idref = getidservicio("Frio Climatizacion");
+                    var idacs = getidservicio("ACS"); 
+                    return [idcalAlta,idcalMedia,idref,idacs]
+            }
+            /**
+
+        *Seleccion de variable piscina
+        * @return  {void}
+
+         */
+            selvarpiscina = function (tipo,seleccion,id1,id2)
+            {
+                var valoresultado;
+                if (tipo == "cal") var Asumacal = new Array();
+                for (var cab = 0; cab &lt; arrayselect.length; cab++) 
+                {
+                    if (tipo != "cal")
+                    {
+                        if (arrayselect[cab].includes(id1)) {
+                            valoresultado = parseFloat(seleccion[arrayselect.indexOf(arrayselect[cab])]) * (porcentajepiscina[tipo] / 100);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (arrayselect[cab].includes(id1) || arrayselect[cab].includes(id2))
+                            Asumacal.push(parseFloat(seleccion[arrayselect.indexOf(arrayselect[cab])]));
+                        if (cab == arrayselect.length - 1)
+                            var sumacal = Asumacal.reduce(sumararray, 0);
+                    }
+                }
+                if (tipo == "cal") valoresultado = sumacal * (porcentajepiscina.cal / 100);
+                return valoresultado;
+            }
+            /**
+
+        *get valor de resultado piscina
+        * @return  {void}
+
+         */
+            getvalorpiscina = function(idcalAlta,idcalMedia,idref,idacs,varsel,seleccion,idvar)
+            {
+                var valoresultado;
+                switch (varsel) 
+                {
+                    case "Calefacción Piscina [W]":
+                        valoresultado = selvarpiscina("cal",seleccion,idcalAlta,idcalMedia);
+                        seleccion[idvar] = valoresultado;
+                    break;
+                    case "Refrigeración Piscina [W]":
+                        valoresultado = selvarpiscina("ref",seleccion,idref);
+                        seleccion[idvar] = valoresultado;
+                    break;
+                    case "Acs Piscina [W]":
+                        valoresultado = selvarpiscina("acs",seleccion,idacs);
+                        seleccion[idvar] = valoresultado;
+                    break;
+                }
+                return valoresultado;
+            }
+            /**
+
+        *get valor de resultado si es un servicio
+        * @return  {void}
+
+         */
+            getvalorpiscinaservicios = function (idcalAlta,idcalMedia,idref,idacs,varsel,seleccion,numvarsel)
+            {
+                var valoresultado;
+                var etiqueta = "POTENCIA";
+                var variable = varsel.trim();
+                if (variable.includes(etiqueta) &amp;&amp; (variable.includes(idcalAlta) || variable.includes(idcalMedia)))
+                valoresultado = parseFloat(seleccion[numvarsel]) * (100 - porcentajepiscina.cal) / 100;
+                else if (variable.includes(etiqueta) &amp;&amp; (variable.includes(idref)))
+                valoresultado = parseFloat(seleccion[numvarsel]) * (100 - porcentajepiscina.ref) / 100;
+                else if (variable.includes(etiqueta) &amp;&amp; (variable.includes(idacs)))
+                valoresultado = parseFloat(seleccion[numvarsel]) * (100 - porcentajepiscina.acs) / 100;
+                return valoresultado;
+            }
+            /**
+
+        *Equilibra array seleccion cuando hay piscina
+        * @return  {void}
+
+         */
+            equilibraseleccion = function (seleccion)
+            {
+                while (seleccion.length &lt; arrayselect.length)
+                seleccion.push(0);
+            }
+        }
+        SelectorVariables = function()
+        {
+            //Añade variables al selector
+            addOptions = function (arrayselect) 
+            {
+                var menu = "";
+                var cont = 0;
+                for (value in arrayselect) 
+                {
+                    menu += "&lt;label style='margin-top:7px; white-space:nowrap' for='" + cont + "'>";
+                    menu += "&lt;input  type='checkbox' id=" + cont + " style='margin-top:5px; margin-bottom:5px; margin-left:12px; margin-right:12px;' onclick='clik(" + cont + ")' />" + arrayselect[value] + "&lt;/label>\n";
+                    cont++;
+                }
+                document.getElementById("checkboxes").innerHTML = menu;
+            }
+            /**
+
+        *controlador check selector variables
+        * @return  {void}
+
+         */
+            clik = function (cont) {
+                dataArray = [['Horas']];
+                var rangoP;
+                cabeceraleido = 1;
+                if (document.getElementById(cont).checked == true &amp;&amp; elementosSel.indexOf(cont) == -1) {
+                    if (datef.value &lt; date.value) {
+                        chart.clearChart();
+                        alert('Fecha inicial > Fecha final')
+                    }
+                    else {
+                        elementosSel.push(cont);
+                        if (arrayselect != undefined)
+                            for (var z = 0; z &lt; elementosSel.length; z++) {
+                                rango = arrayselect[cont].substring
+                                    (arrayselect[cont].lastIndexOf("[") + 1, arrayselect[cont].lastIndexOf("]"));
+                                    if (rango2.indexOf(rango) == -1 &amp;&amp; rango != "")
+                                    rango2.push(rango);
+                            }
+                        if (radsel == 0) {
+                            if (rango2.length > 3) {
+                                alert(' Sólo Puedes Visualizar 3 Ejes Simultáneamente');
+                                document.getElementById(cont).checked = false
+                            }
+                            else {
+                                if (rango2.length > 1 &amp;&amp; integrado == 0)
+                                    document.getElementById('gmensual').disabled = true;
+                            }
+                        }
+                        if (radsel == 1 &amp;&amp; integrado == 0) {
+                            if (rango2.length > 1) {
+                                alert('Sólo Puedes Visualizar 1 Eje Simultáneamente');
+                                document.getElementById(cont).checked = false;
+                                rango2.pop();
+                                elementosSel.pop();
+                            }
+                        }
+                    }
+                }
+                else if (document.getElementById(cont).checked == false) {
+                    if (datef.value &lt; date.value) {
+                        chart.clearChart();
+                        alert('Fecha inicial > Fecha final')
+                    }
+                    else {
+                        var rangoP = "";
+                        var rep = false;
+                        if (arrayselect != undefined)
+                        {
+                            rangoP = arrayselect[cont].substring(arrayselect[cont].lastIndexOf("[") + 1, arrayselect[cont].lastIndexOf("]"));
+                            var rangoS = rango2.indexOf(rangoP);
+                        }
+                        elementosSel.splice(elementosSel.indexOf(cont), 1);
+                        rango3.splice(elementosSel.indexOf(cont), 1);
+                        for (var x = 0; x &lt; elementosSel.length; x++) {
+                            if (arrayselect != undefined)
+                            rangoP = arrayselect[elementosSel[x]].substring(arrayselect[elementosSel[x]].lastIndexOf("[") + 1, arrayselect[elementosSel[x]].lastIndexOf("]"));
+                            if (rangoP == rango2[rangoS]) {
+                                rep = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (rep == false) {
+                        if (arrayselect != undefined)
+                        {
+                            rangoP = arrayselect[cont].substring
+                                (arrayselect[cont].lastIndexOf("[") + 1, arrayselect[cont].lastIndexOf("]"));
+                            rango2.splice(rango2.indexOf(rangoP), 1);
+                        }
+                    }
+                    if (elementosSel.length == 0 &amp;&amp; chart != undefined) {
+                        chart.clearChart();
+                        table_div.style.display = "none";
+                    }
+                    else {
+                        if (gtabla.checked == true)
+                            table_div.style.display = "block";
+                        if (rango2.length == 1)
+                            document.getElementById('gmensual').disabled = false;
+                    }
+                }
+            }
+            /**
+
+        *controlador selector de variables
+        * @return  {void}
+
+         */
+            showCheckboxes = function (origen) {
+                    var checkboxes = document.getElementById(origen);
+                    if ( checkboxes.style.display == "block") 
+                        checkboxes.style.display = "none";
+                    else 
+                        checkboxes.style.display = "block";
+            }
+        }
+        ResultadosDemanda = function()
+        {
+            LeerCabeceraDemanda = function(txtArray)
+            {
+                var tmpData = txtArray[0].split('-');
+                arrayselect = tmpData.slice([3]);
+                if (haypiscina == true)
+                    resultadospiscina("Existente");
+                else
+                    addOptions(arrayselect);
+            }
+            LeerDatosHorariosDemanda = function(txtArray)
+            {
+                //Eliminamos valores de espacio finales y salto de línea
+                for (filas = 0; filas &lt; txtArray.length; filas++) 
+                {
+                    miniArray = [];
+                    if (filas == 0)
+                        var tmpData = txtArray[filas].split('\t');
+                    if (filas > 0) {
+                        var tmpData = txtArray[filas].split(/[ ]+/);
+                        tmpData.pop();
+                        if (filas &lt;= 6552)
+                            tmpData.shift();
+                    }
+                    if (tmpData[0] >= mes &amp;&amp; (tmpData[1] >= dia || tmpData[0] != mes)) 
+                    {
+                        if (tmpData[0] >= mesf &amp;&amp; (tmpData[1] > diaf || tmpData[0] != mesf))
+                            break;
+                        else 
+                        {
+                            var seleccion = tmpData.slice([3]);
+                            miniArray.push(filas);
+                            for (var i = 0; i &lt; elementosSel.length; i++)
+                                if (elementosSel[i] > 7) 
+                                {
+                                    var valoresultado = undefined;
+                                    switch (arrayselect[elementosSel[i]]) 
+                                    {
+                                        case "Calefacción Piscina [W]":
+                                            valoresultado = parseFloat(seleccion[arrayselect.indexOf("Demanda calefaccion [W]")]) * (porcentajepiscina.cal / 100);
+                                            break;
+                                        case "Refrigeración Piscina [W]":
+                                            valoresultado = parseFloat(seleccion[arrayselect.indexOf("Demanda refrigeracion [W]")]) * (porcentajepiscina.ref / 100);
+                                            break;
+                                        case "Acs Piscina [W]":
+                                            valoresultado = parseFloat(seleccion[arrayselect.indexOf("Demanda ACS [W]")]) * (porcentajepiscina.acs / 100);
+                                            break;
+
+                                    }
+                                    if (isNaN(valoresultado) == true)
+                                        valoresultado = 0;
+                                    miniArray.push(valoresultado);
+                                }
+                                else if (haypiscina == true) 
+                                {
+                                    var valoresultado = undefined;
+                                    switch (elementosSel[i]) 
+                                    {
+                                        case 0:
+                                            if (arraypiscina.includes("Calefacción Piscina [W]") == true)
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]) * (100 - porcentajepiscina.cal) / 100;
+                                            else
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]);
+                                            break;
+                                        case 1:
+                                            if (arraypiscina.includes("Refrigeración Piscina [W]") == true)
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]) * (100 - porcentajepiscina.ref) / 100;
+                                            else
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]);
+                                            break;
+                                        case 2:
+                                            if (arraypiscina.includes("Acs Piscina [W]") == true)
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]) * (100 - porcentajepiscina.acs) / 100;
+                                            else
+                                                valoresultado = parseFloat(seleccion[elementosSel[i]]);
+                                            break;
+                                    }
+                                    if (valoresultado == undefined)
+                                        miniArray.push(parseFloat(seleccion[elementosSel[i]]));
+                                    else
+                                    if (isNaN(valoresultado) == true)
+                                    {
+                                        valoresultado = 0;
+                                        miniArray.push(valoresultado);
+                                    }
+                                    else
+                                        miniArray.push(valoresultado);
+                                }
+                                else if (haypiscina == false)
+                                    miniArray.push(parseFloat(seleccion[elementosSel[i]]));
+                            dataArray.push(miniArray);
+                        }
+                    }
+                }
+            }
+            /**
+
+        *Leemos y representamos los resultados en la gráfica de demandas
+        * @return  {void}
+
+         */
+            LeerDatosMensualesDemanda = function(txtArray,Meses,diferencia)
+            {
+                RepresentacionMensualDemanda = function(tmpData,tmpData2,Meses,diferencia)
+                {
+                    n++;
+                    mesActual = tmpData2[0];
+                    var seleccion = tmpData.slice([3]);
+                    //Saca los valores de consumo de los colectores
+                    if (haypiscina == true) {
+                        seleccion.push(seleccion[0], seleccion[1], seleccion[2]);
+                        seleccion[0] = parseFloat(seleccion[0]) * (100 - porcentajepiscina.cal) / 100;
+                        seleccion[1] = parseFloat(seleccion[1]) * (100 - porcentajepiscina.ref) / 100;
+                        seleccion[2] = parseFloat(seleccion[2]) * (100 - porcentajepiscina.acs) / 100;
+                        seleccion[8] = parseFloat(seleccion[8]) * (porcentajepiscina.cal / 100);
+                        seleccion[9] = parseFloat(seleccion[9]) * (porcentajepiscina.ref / 100);
+                        seleccion[10] = parseFloat(seleccion[10]) * (porcentajepiscina.acs / 100);
+                    }
+                    sumamensual(seleccion);
+                    if (mesActual != mes &amp;&amp; mesAntiguo != mesActual &amp;&amp; filas > 2 || filas == txtArray.length + diferencia) 
+                        var mesvisualizado = mediamensual(Meses);
+                    return mesvisualizado;
+                }
+                for (filas = 0; filas &lt; txtArray.length; filas++) {
+                    miniArray = [];
+                    if (filas == 0)
+                        var tmpData = txtArray[filas].split('-');
+                    if (filas > 0) {
+                        var tmpData = txtArray[filas].split(/[ ]+/);
+                        if (filas != txtArray.length - 1)
+                            var tmpData2 = txtArray[filas + 1].split(/[ ]+/);
+                        tmpData.pop();
+                        tmpData2.pop();
+                        if (filas &lt;= 6552)
+                            tmpData.shift();
+                        if (filas &lt;= 6551)
+                            tmpData2.shift();
+                    }
+                    if (tmpData[0] >= mes &amp;&amp; (tmpData[1] >= dia || tmpData[0] != mes)) // If Cota inicial
+                    {
+                        if (tmpData[0] >= mesf &amp;&amp; (tmpData[1] > diaf || tmpData[0] != mesf)) // If Cota Final
+                        {   // Representación último Mes (Excluyendo Diciembre)
+                            RepresentacionMensualDemanda(tmpData,tmpData2,Meses);
+                            break;
+                        }
+                        else {
+                            var mesvisualizado = RepresentacionMensualDemanda(tmpData,tmpData2,Meses);
+                        }
+                        mesAntiguo = mesActual;
+                    }
+                }
+                return mesvisualizado;
+            }
+        }
+        /**
+
+        *Leemos y representamos los resultados en la gráfica de consumo
+        * @return  {void}
+
+         */
+        ResultadosConsumo = function()
+        {
+            LeerCabeceraConsumo = function(txtArray)
+            {
+                //Sacamos los valores de la primera fila del archivo correspondiente a la cabecera y los almacenamos
+                var cabecera = txtArray[3].split('\t');
+                cabecera = cabecera.splice([4]);
+                var cabecera2 = txtArray[4].split('\t');
+                cabecera2 = cabecera2.splice([4]);
+                var substringcabecera = new Array();
+                for (var i = 0; i &lt; cabecera2.length; i++)
+                {
+                    
+                    if(cabecera2[i].trim() != "RENDIMIENTO" &amp;&amp; cabecera2[i].trim() != "FUNCIONAMIENTO")
+                    substringcabecera.push(cabecera2[i].trim().substring(0, cabecera2[i].lastIndexOf("[")-1));
+                    if (cabecera2[i].trim() == "RENDIMIENTO")
+                    substringcabecera.push("RENDIMIENTO");
+                    if (cabecera2[i].trim() == "FUNCIONAMIENTO")
+                    substringcabecera.push("FUNCIONAMIENTO");
+                }
+                var substringcabecera2 = new Array();
+                for (var i = 0; i &lt; cabecera2.length; i++)
+                    substringcabecera2.push(cabecera2[i].substring(cabecera2[i].lastIndexOf("["), cabecera2[i].lastIndexOf("]") + 1, ));
+                var cabecerafinal = new Array();
+                for (var i = 0; i &lt; cabecera2.length; i++)
+                    cabecerafinal.push(substringcabecera[i] + cabecera[i] + substringcabecera2[i]);
+                arrayselect = cabecerafinal
+                if (checkinstalacion()==false)
+                {
+                    alert('ERROR: Los resultados cargados no se corresponden con la nueva instalación actual. Por favor calcula alternativas de nuevo');
+                    return cargarCasosP();
+                }
+                if (haypiscina2 == true) {
+                    for (var cab = 0; cab &lt; arrayselect.length; cab++) // para buscar la etiqueta correspondiente y hacer la cuenta.
+                    {
+                        if (arrayselect[cab].includes( "POTENCIA Calefaccion") || arrayselect[cab].includes( "POTENCIA Frio") || arrayselect[cab].includes( "POTENCIA ACS")) {
+                            resultadospiscina("Nuevo");
+                            break;
+                        }
+                        else addOptions(arrayselect);
+                    }
+                }
+                else
+                    addOptions(arrayselect);
+            }
+            /**
+
+        *Leemos y representamos los datos horarios del archivo
+        * @return  {void}
+
+         */
+            LeerDatosHorariosConsumo = function(txtArray)
+            {
+                if (haypiscina2 == true)
+                var ids = getservicios();
+                else var ids = new Array();
+                HorarioConsumoPiscina = function(idcalAlta,idcalMedia,idref,idacs,varsel,seleccion,numvarsel)
+                {
+                    var valoresultado = undefined;
+                    if (arraypiscina.includes(varsel) == true) 
+                        valoresultado = getvalorpiscina(idcalAlta,idcalMedia,idref,idacs,varsel,seleccion,numvarsel);
+                    else
+                        valoresultado = getvalorpiscinaservicios(idcalAlta,idcalMedia,idref,idacs,varsel,seleccion,numvarsel);
+                    if (valoresultado == undefined)
+                    miniArray.push(parseFloat(parseFloat(seleccion[elementosSel[i]].trim()).toFixed(4)));
+                        // miniArray.push(parseFloat(seleccion[elementosSel[i]]));
+                    else
+                        miniArray.push(valoresultado);
+                }
+                for (filas = 0; filas &lt; txtArray.length; filas++) 
+                {
+                    miniArray = [];
+                    var tmpData = txtArray[filas].split('\t');
+                    if (filas > 4) 
+                    {
+                        if (tmpData[1] >= mes &amp;&amp; (tmpData[2] >= dia || tmpData[1] != mes)) 
+                        {
+                            if (tmpData[1] >= mesf &amp;&amp; (tmpData[2] > diaf || tmpData[1] != mesf))
+                                break;
+                            else 
+                            {
+                                var seleccion = tmpData.slice([4]);
+                                if (haypiscina2 == true)
+                                    equilibraseleccion(seleccion);
+                                miniArray.push(filas - 4);
+                                for (var i = 0; i &lt; elementosSel.length; i++)
+                                    if (haypiscina2 == true) 
+                                        HorarioConsumoPiscina(ids[0],ids[1],ids[2],ids[3],arrayselect[elementosSel[i]],seleccion,elementosSel[i]);
+                                    else if (haypiscina2 == false) 
+                                        miniArray.push(parseFloat(seleccion[elementosSel[i]]));
+                                dataArray.push(miniArray);
+                            }
+                        }
+                    }
+                }
+            }
+            /**
+
+        *Leemos y representamos los datos mensuales del archivo
+        * @return  {void}
+
+         */
+            LeerDatosMensualesConsumo = function(txtArray,Meses)
+            {
+                RepresentacionMensualConsumo = function (tmpData,tmpData2,Meses,idcalAlta,idcalMedia,idref,idacs)
+                {
+                    //Sacamos los valores mensuales
+                    n++;
+                    mesActual = tmpData2[1];
+                    var seleccion = tmpData.slice([4]);
+                    if (haypiscina2 == true) 
+                    {
+                        equilibraseleccion(seleccion);
+                        for (var i = 0; i &lt; elementosSel.length; i++)
+                            if (arraypiscina.includes(arrayselect[elementosSel[i]]) == true) //Si se selecciona una variable piscina
+                                seleccion[elementosSel[i]] = getvalorpiscina(idcalAlta,idcalMedia,idref,idacs,arrayselect[elementosSel[i]],seleccion,elementosSel[i]);
+                            else if (haypiscina2 == true) //si se selecciona un servicio afectado por piscina
+                            {
+                                var valoresultado = getvalorpiscinaservicios(idcalAlta,idcalMedia,idref,idacs,arrayselect[elementosSel[i]],seleccion,elementosSel[i])
+                                if (valoresultado != undefined)
+                                seleccion[elementosSel[i]] = valoresultado;
+                            }
+                    }
+                    sumamensual(seleccion);
+                    if (mesActual != mes &amp;&amp;mesAntiguo != mesActual &amp;&amp; filas > 5 || filas == txtArray.length - 1) 
+                        var mesvisualizado = mediamensual(Meses);
+                    return mesvisualizado;
+                }
+                txtArray.pop();
+                txtArray.pop();
+                if (haypiscina2 == true)
+                var ids = getservicios();
+                else var ids = new Array();
+                for (filas = 0; filas &lt; txtArray.length; filas++) {
+                    miniArray = [];
+                    var tmpData = txtArray[filas].split('\t');
+                    if (filas != txtArray.length - 1)
+                        var tmpData2 = txtArray[filas + 1].split(/[ ]+/);
+                    if (filas > 4) {
+                        if (parseFloat(tmpData[1]) >= mes &amp;&amp; (parseFloat(tmpData[2]) >= dia || parseFloat(tmpData[1]) != mes)) // If Cota inicial
+                        {
+                            if (parseFloat(tmpData[1]) >= mesf &amp;&amp; (parseFloat(tmpData[2]) > diaf || parseFloat(tmpData[1]) != mesf)) // If Cota Final
+                            {   // Representación último Mes (Excluyendo Diciembre)
+                                RepresentacionMensualConsumo(tmpData,tmpData2,Meses,ids[0],ids[1],ids[2],ids[3]);
+                                break;
+                            }
+                            else 
+                                var mesvisualizado = RepresentacionMensualConsumo(tmpData,tmpData2,Meses,ids[0],ids[1],ids[2],ids[3]);
+                            mesAntiguo = mesActual;
+                        }
+                    }
+                }
+                return mesvisualizado;
+            }
+        }
+        ResultadosIntegrados = function()
+        {
+            function ServicioIntegrado(etiqueta, representacion, valores, cabecera, unidad) {
+                this.etiqueta = etiqueta;
+                this.representacion = representacion;
+                this.valores = valores;
+                this.cabecera = cabecera;
+                this.unidad = unidad;
+            }
+            function ServicioIntegradoM(etiquetaM, representacionM, valoresM, cabeceraM, unidadM) {
+                this.etiquetaM = etiquetaM;
+                this.representacionM = representacionM;
+                this.valoresM = valoresM;
+                this.cabeceraM = cabeceraM;
+                this.unidadM = unidadM;
+            }
+            LeerResultadosIntegrados = function (txt, diferencia, Meses) {
+                //representamos los resputlados en orden
+                dataArray = [['Valores']];
+                var numresultados = $('#selparametrico label input')
+                if (cabeceraleido == 1)
+                var indexres = getindexresultados(numresultados);
+                else
+                indexres = txt;
+                if (txt.length == 1) { indexres = [0] }
+                for (var numresultados = 0; numresultados &lt; indexres.length ; numresultados++) 
+                {
+                    LeerArchivo(txt,numresultados,indexres);
+                    EscribirIntegrado(Meses,numresultados,indexres)
+                }
+            }
+            /**
+
+        *Lee el archivo correspondiente
+        * @return  {void}
+
+         */
+            LeerArchivo = function (txt,numresultados)
+            {
+                //Saca los valores de los equipos
+                if (integrado == 1 &amp;&amp; cabeceraleido == 0) 
+                {
+                    var AunidadA = new Array();
+                    Aservicios[numresultados] = new Array();
+                    AserviciosM[numresultados] = new Array();
+                    var txtArray = txt[numresultados].split('\n');
+                    txtArray.pop();
+                    txtArray.pop();
+                    var etiquetasvalor = new Array();
+                    todasetiquetas = new Array();
+                    etiquetasvalorM = new Array();
+                    for (filas = 0; filas &lt; txtArray.length; filas++) {
+                        miniArray = [];
+                        miniArrayM = new Array();
+                        etiquetasvalor = [];
+                        etiquetasvalorM = [];
+                            var tmpData = txtArray[filas].substr(0, txtArray[filas].indexOf(' ', txtArray[filas].indexOf(' ') + 1)); // agrupacion
+                            switch (tmpData) {
+                                case "Demanda =":
+                                    var servicioactual = new ServicioIntegrado();
+                                    var servicioactualM = new ServicioIntegradoM();
+                                    servicioactual.cabecera = txtArray[filas].replace("Ã³","ó").trim();
+                                    servicioactualM.cabeceraM = txtArray[filas];
+                                    break;
+                                case "Líneas =":
+                                    var numlineas = parseInt(txtArray[filas].substr(-2));
+                                    for (var filaactual = 0; filaactual &lt; numlineas; filaactual++) {
+                                        filas++;
+                                        var eseuro = txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].indexOf(")"));
+                                        var representacion = txtArray[filas].substring(txtArray[filas].lastIndexOf("/") + 1, txtArray[filas].indexOf(")"));
+                                        if (representacion == "Precio equipo (Euros")
+                                            respresentacion = "año";
+                                        if (representacion == "año" || eseuro == "Euros") {
+                                            if (eseuro == "Euros") {
+                                                if (AunidadA.includes(eseuro) == false)
+                                                    AunidadA.push(eseuro);
+                                            }
+                                            else {
+                                                if (AunidadA.includes(txtArray[filas].substring(txtArray[filas].indexOf("(") + 1, txtArray[filas].lastIndexOf("/"))) == false)
+                                                    AunidadA.push(txtArray[filas].substring(txtArray[filas].indexOf("(") + 1, txtArray[filas].lastIndexOf("/")));
+                                            }
+                                            servicioactual.unidad = ' [' + AunidadA + ']';
+                                            servicioactual.representacion = representacion;
+                                            if (eseuro == "Euros")
+                                                etiquetasvalor.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].indexOf(")")) + ")");
+                                            else
+                                                etiquetasvalor.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].indexOf("/")) + ")");
+                                            if (eseuro == "Euros")
+                                                todasetiquetas.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].indexOf(")")) + ")");
+                                            else
+                                                todasetiquetas.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].indexOf("/")) + ")");
+                                            var valoranual = parseFloat(txtArray[filas].substring(txtArray[filas].lastIndexOf("=") + 1, txtArray[filas].lastIndexOf("")));
+                                            miniArray.push(valoranual);
+                                        }
+                                        else if (representacion == "mes" || eseuro == "Euros") {
+                                            var unidad = txtArray[filas].substring(txtArray[filas].indexOf("(") + 1, txtArray[filas].lastIndexOf("/"));
+                                            servicioactualM.unidadM = ' [' + unidad + ']';
+                                            servicioactualM.representacionM = representacion;
+                                            if (eseuro == "Euros")
+                                                etiquetasvalorM.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].indexOf("(") + 1, txtArray[filas].indexOf(")")) + ")");
+                                            else
+                                                etiquetasvalorM.push(txtArray[filas].substr(0, txtArray[filas].indexOf('', txtArray[filas].indexOf('('))) + "(" + txtArray[filas].substring(txtArray[filas].indexOf("(") + 1, txtArray[filas].indexOf("/")) + ")");
+                                            var valoranual = txtArray[filas].substring(txtArray[filas].lastIndexOf("(") + 1, txtArray[filas].lastIndexOf(")")).split(',');
+                                            for (pf = 0; pf &lt; valoranual.length; pf++)
+                                                valoranual[pf] = parseFloat(valoranual[pf]).toFixed(2);
+                                            miniArrayM.push(valoranual);
+                                        }
+                                    }
+                                    AunidadA = [];
+                                    servicioactual.valores = miniArray;
+                                    servicioactual.etiqueta = etiquetasvalor;
+                                    servicioactualM.valoresM = miniArrayM;
+                                    servicioactualM.etiquetaM = etiquetasvalorM;
+                                    if(servicioactual.cabecera.trim() != "Equipo = ICfantasma")
+                                    Aservicios[numresultados].push(servicioactual);
+                                    if(servicioactualM.cabeceraM.trim() != "Equipo = ICfantasma")
+                                    AserviciosM[numresultados].push(servicioactualM);
+                                    break;
+                                case "Equipo =":
+                                    var servicioactual = new ServicioIntegrado();
+                                    var servicioactualM = new ServicioIntegradoM();
+                                    servicioactual.cabecera = txtArray[filas].replace("Ã³","ó").trim();
+                                    servicioactualM.cabeceraM = txtArray[filas];
+                                    break;
+                                case "Energético =":
+                                    var servicioactual = new ServicioIntegrado();
+                                    var servicioactualM = new ServicioIntegradoM();
+                                    servicioactual.cabecera = txtArray[filas].replace("Ã³","ó");
+                                    servicioactualM.cabeceraM = txtArray[filas];
+                            }
+                    }
+                    var Acabecera = Aservicios[numresultados].map(a => a.cabecera);
+                    var Aunidad = Aservicios[numresultados].map(a => a.unidad);
+                    var cabecerafinal = Acabecera.map((e, i) => e + Aunidad[i]);
+                    addOptions(cabecerafinal);
+                    todasetiquetas = [...new Set(todasetiquetas)];
+                }
+            }
+            /**
+
+        *Escribe los datos en formato horario
+        * @return  {void}
+
+         */
+            EscribirIntegrado = function (Meses,numresultados,indexres)
+            {
+                RepresentacionAnual = function (numresultados,indexres)
+                {
+                   
+                    if (numresultados == 0)
+                        for (var a = 0; a &lt; todasetiquetas.length; a++)
+                            dataArray.push([todasetiquetas[a]]);
+                    for (var i = 0; i &lt; elementosSel.length; i++) 
+                    {
+                        dataArray[0].push(idresint[numresultados]+' '+Aservicios[indexres[numresultados]][elementosSel[i]].cabecera);
+                        for (var h = 0; h &lt; Aservicios[indexres[numresultados]][elementosSel[i]].etiqueta.length; h++) 
+                            for (var j = 1; j &lt; dataArray.length; j++) 
+                                if (dataArray[j][0].indexOf(Aservicios[indexres[numresultados]][elementosSel[i]].etiqueta[h]) == 0) 
+                                    dataArray[j].push(Aservicios[indexres[numresultados]][elementosSel[i]].valores[h]);
+                        for (var j1 = 1; j1 &lt; dataArray.length; j1++)
+                            if (dataArray[j1].length &lt; dataArray[0].length)
+                                dataArray[j1].push(null);
+                    }
+                }
+                /**
+
+        *Escribe los datos en formato mensual
+        * @return  {void}
+
+         */
+                RepresentacionMensual = function(Meses,numresultados,indexres)
+                {
+                    var Meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                    if (numresultados == 0) 
+                    {
+                        for (var mi = 1; mi &lt; mes; mi++)
+                            Meses.shift();
+                        if (mesf != 12)
+                            for (var mf = 0; mf &lt;= 12 - mesf - 1; mf++)
+                                Meses.pop();
+                        for (var a = 0; a &lt; Meses.length; a++)
+                            dataArray.push([Meses[a]]);
+                    }
+                    for (var i = 0; i &lt; elementosSel.length; i++) 
+                    {
+                        for (var h = 0; h &lt; AserviciosM[indexres[numresultados]][elementosSel[i]].valoresM.length; h++) 
+                        {
+                            var etiquetacabecera = AserviciosM[indexres[numresultados]][elementosSel[i]].cabeceraM.substring(AserviciosM[indexres[numresultados]][elementosSel[i]].cabeceraM.indexOf("=") + 1, AserviciosM[indexres[numresultados]][elementosSel[i]].cabeceraM.lastIndexOf(""));
+                            var etiquetafinal = AserviciosM[indexres[numresultados]][elementosSel[i]].etiquetaM[h].concat(etiquetacabecera);
+                            dataArray[0].push(idresint[numresultados]+' '+etiquetafinal);
+                            var recortado = new Array();
+                            for (asd = 0; asd &lt; AserviciosM[indexres[numresultados]][elementosSel[i]].valoresM[h].length; asd++)
+                                recortado.push(AserviciosM[indexres[numresultados]][elementosSel[i]].valoresM[h][asd]);
+                            for (var mi = 1; mi &lt; mes; mi++)
+                                recortado.shift();
+                            for (var mf = 0; mf &lt;= 12 - mesf - 1; mf++)
+                                recortado.pop();
+                            for (var da = 1; da &lt; dataArray.length; da++)
+                                dataArray[da].push(parseFloat(recortado[da - 1]));
+                        }
+                    }
+                }
+                 if (integrado == 1 &amp;&amp; cabeceraleido == 1) 
+                 {
+                    if (radsel == 0) 
+                        RepresentacionAnual(numresultados,indexres);
+                    else if (radsel == 1) 
+                        RepresentacionMensual(Meses,numresultados,indexres);
+                }
+            }
+            /**
+
+        *Crea la cabecera general
+        * @return  {void}
+
+         */
+            RepresentarIntegrado = function () {
+                arrayselect = new Array();
+                for (var et = 0; et &lt; $('#checkboxes label').length; et++) {
+                    var etactual = $('#checkboxes label')[et].innerText;
+                    arrayselect.push(etactual);
+                }
+                for (var z = 0; z &lt; elementosSel.length; z++) {
+                    rango = arrayselect[elementosSel[z]].substring
+                        (arrayselect[elementosSel[z]].lastIndexOf("[") + 1, arrayselect[elementosSel[z]].lastIndexOf("]"));
+                    if (rango2.indexOf(rango) == -1)
+                        rango2.push(rango);
+                }
+                var vaxes1 = rango2[0];
+                if (rango2.length >= 2)
+                    var vaxes2 = rango2[1];
+                if (rango2.length >= 3)
+                    var vaxes3 = rango2[2];
+                cargar = 1;
+                for (var x = 1; x &lt; dataArray[0].length; x++) {
+                    rango = dataArray[0][x].substring(dataArray[0][x].lastIndexOf("[") + 1, dataArray[0][x].lastIndexOf("]"));
+                    rango3[x - 1] = { targetAxisIndex: rango2.indexOf(rango) };
+                }
+                options = {
+                    series: rango3,
+                    chartArea: {
+                        backgroundColor: {
+                            stroke: '#d3d3d3',
+                            strokeWidth: 2
+                        },
+                    },
+                    height: 600,
+                    vAxes: {
+                        0: { title: "", },
+                        1: { title: "", },
+                        2: { title: "", textPosition: 'in' },
+                    },
+                    hAxis: {
+                        title: '',
+                        titleTextStyle: { color: '#333' },
+                        gridlines: { color: 'transparent', count: 'none' },
+                    },
+                    vAxis: {
+                        minValue: 0,
+                        format: 'long',
+                        gridlines: { color: 'transparent', count: 'none' },
+                    },
+                    baselineColor: 'transparent',
+                    title: 'Resultados',
+                    legend: { position: 'top' },
+                };
+                chart = new google.visualization.ColumnChart(document.querySelector('#chart_div'));
+                data = new google.visualization.arrayToDataTable(dataArray);
+                chart.draw(data, options);
+                var table = new google.visualization.Table(document.getElementById('table_div'));
+                table.draw(data, { showRowNumber: false, width: '100%', height: '100%', });
+                datoscsv = data;
+                bexportcsv.style.display = 'flex';
+            }
+            /**
+
+        *Seleccionamos el formato de la gráfica
+        * @return  {void}
+
+         */
+            Selectintegrado = async function ()
+            {
+                await $http.post("selparametrico.php", { 'idcaso': idCaso, 'datos':'none' , 'action':'cargar','equipos':'none','type':'id'})
+                .success(function (datos) 
+                {     
+                    idresint = datos;
+                var Acabecera = [];
+                for (var a = 0; a &lt; datos.length ; a++)
+                    Acabecera.push('Archivo de Resultados '+datos[a]+' ');
+                Addoptionselintegrado(Acabecera);
+                })
+            }
+            /**
+
+        *Añadimos las posibles opciones
+        * @return  {void}
+
+         */
+            Addoptionselintegrado = function (arrayselect) {
+                var menu = "";
+                var cont = 0;
+                menu += "&lt;label style='margin-top:7px; white-space:nowrap' for='todos'>";
+                menu += "&lt;input  type='checkbox' onclick='seltodos()' id='todos' style='margin-top:5px; margin-bottom:5px; margin-left:12px; margin-right:12px;'/>Todos&lt;/label>\n";
+                for (value in arrayselect) 
+                {
+                    menu += "&lt;label style='margin-top:7px; white-space:nowrap' for='res" + cont + "'>";
+                    menu += "&lt;input  type='checkbox' id='res"+cont+"' style='margin-top:5px; margin-bottom:5px; margin-left:12px; margin-right:12px;'/>" + arrayselect[value] + "&lt;/label>\n";
+                    cont++;
+                }
+                document.getElementById("selparametrico").innerHTML = menu;
+            }
+            getindexresultados = function (element)
+            {
+                var array = new Array();
+                element.each(function(i) {
+                    if (this.checked &amp;&amp; i != 0) {
+                        array.push(i-1);
+                    }
+                 });
+                 return array;
+            }
+            seltodos = function()
+            {
+                var element = $('#selparametrico label input');
+                for (var a = 0; a &lt;element.length; a++)
+                if (element[0].checked == true)
+               element[a].checked = true;
+                else
+               element[a].checked = false;
+            }
+        }
+        Ejecuccion= function()
+        {
+            //Leer cabecera del archivo.
+            resultadosleercabecera = function () 
+            {
+                porcentajepiscina = {};
+                porcentajepiscina.cal = 0;
+                porcentajepiscina.ref = 0;
+                porcentajepiscina.acs = 0;
+                arraypiscina = new Array();
+                var txtArray = arcCLi.split('\n');
+                if (demanda == 1 &amp;&amp; consumo == 0 ) 
+                    LeerCabeceraDemanda(txtArray);
+                if (consumo == 1 &amp;&amp; demanda == 0 ) 
+                    LeerCabeceraConsumo(txtArray);
+            }
+            resultadosleerdatos = function (txt, diferencia, Meses) {
+                dataArray = [['Horas']];
+                // var filas;
+                var txtArray = txt.split('\n');
+                if (radsel == 0) // REPRESENTACION HORARIA
+                {
+                    if (consumo == 1 &amp;&amp; demanda == 0) 
+                        LeerDatosHorariosConsumo(txtArray);
+                    if (demanda == 1 &amp;&amp; consumo == 0) 
+                        LeerDatosHorariosDemanda(txtArray);
+                }
+                if (radsel == 1) { //Representación Mensual
+                    sumaArray = [];
+                    n = 0;
+                    contmeses = 0;
+                    for (var mi = 1; mi &lt; mes; mi++)
+                        Meses.shift();
+                    if (mesf != 12)
+                        for (var mf = 0; mf &lt;= 12 - mesf - 1; mf++)
+                            Meses.pop();
+                    if (demanda == 1 &amp;&amp; consumo == 0) {
+                        var mesvisualizado =  LeerDatosMensualesDemanda(txtArray,Meses,diferencia);
+                    }
+                    if (consumo == 1 &amp;&amp; demanda == 0) {
+                      var mesvisualizado =  LeerDatosMensualesConsumo(txtArray,Meses);
+                    }
+                    return mesvisualizado;
+                }
+            }
+            /**
+
+        *Dibuja la gráfica
+        * @return  {void}
+
+         */
+            drawChart = function () {
+                if (radsel == undefined)
+                    radsel = 0
+                if (document.getElementById('selvalor') != null)
+                {
+                    var Meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                    document.getElementById('selvalor').style.display = "inline-block";
+                    var date = new Date(document.getElementById("date").value);
+                    dia = date.getDate();
+                    mes = date.getMonth() + 1;
+                    var txt = "";
+                    var datef = new Date(document.getElementById("datef").value);
+                    diaf = datef.getDate();
+                    mesf = datef.getMonth() + 1;
+                    txt = arcCLi;
+                    if (integrado == 0) {
+                        var diferencia;
+                        if (txt.charCodeAt(txt.length - 1) > 0 &amp;&amp; txt.charCodeAt(txt.length - 1) &lt; 32)
+                            diferencia = -2;
+                        else
+                            diferencia = -1;
+                    }
+                    if (radsel == 1 &amp;&amp; integrado == 0)    //Representación Mensual (Barras)
+                    {
+                        var mesvisualizado = resultadosleerdatos(txt, diferencia, Meses);
+                        resultadosrepresentardatos(mesvisualizado);
+                    }
+                    if (radsel == 0)    //Representación Horaria (Líneas)
+                    {
+                        if ((consumo == 1 || demanda == 1)&amp;&amp; integrado == 0) // REPRESENTACION HORARIA DE CONSUMO
+                        {
+                            if (cabeceraleido == 0 &amp;&amp; cargar == 0)
+                                resultadosleercabecera();
+                            else
+                                resultadosleerdatos(txt);
+                        }
+                        if ((consumo == 1 || demanda == 1) &amp;&amp; cabeceraleido == 1 &amp;&amp; integrado == 0)
+                            resultadosrepresentardatos(mesvisualizado);
+                    }
+                    if (integrado == 1) 
+                        LeerResultadosIntegrados(txt);
+                    if (integrado == 1 &amp;&amp; cabeceraleido == 1)
+                        RepresentarIntegrado();
+                    if (gtabla.checked == true)
+                        table_div.style.display = "block";
+                }
+            }
+            RepresentacionHoraria = function()
+            {
+                for (L = 0; L &lt; elementosSel.length; L++)
+                dataArray[0].push(arrayselect[elementosSel[L]]);
+            var vaxes1 = rango2[0];
+            if (rango2.length >= 2)
+                var vaxes2 = rango2[1];
+            if (rango2.length >= 3)
+                var vaxes3 = rango2[2];
+            cargar = 1;
+            for (var x = 1; x &lt; dataArray[0].length; x++) {
+                rango = dataArray[0][x].substring
+                    (dataArray[0][x].lastIndexOf("[") + 1, dataArray[0][x].lastIndexOf("]"));
+                rango3[x - 1] = { targetAxisIndex: rango2.indexOf(rango) };
+            }
+            //representamos los ejes
+            options = {
+                series: rango3,
+                chartArea: {
+                    backgroundColor: {
+                        stroke: '#d3d3d3',
+                        strokeWidth: 2
+                    },
+                },
+                height: 600,
+                vAxes: {
+                    0: { title: vaxes1, },
+                    1: { title: vaxes2, },
+                    2: { title: vaxes3, textPosition: 'in' },
+                },
+                hAxis: {
+                    title: 'Horas Anuales',
+                    titleTextStyle: { color: '#333' },
+                    gridlines: { color: 'transparent', count: 'none' },
+                    slantedText: true, slantedTextAngle: 80,
+                },
+                vAxis: {
+                    minValue: 0,
+                    format: 'long',
+                    gridlines: { color: 'transparent', count: 'none' },
+                },
+                baselineColor: 'transparent',
+                title: 'Resultados',
+                legend: { position: 'top' },
+                explorer: {
+                    actions: ['dragToZoom', 'rightClickToReset'],
+                    axis: 'horizontal',
+                    keepInBounds: true,
+                    maxZoomIn: 70.0,
+                },
+            };
+            //Creamos la tabla, gráfica y los datos de resultados
+            chart = new google.visualization.LineChart(document.querySelector('#chart_div'));
+            data = new google.visualization.arrayToDataTable(dataArray);
+            var table = new google.visualization.Table(document.getElementById('table_div'));
+            table.draw(data, { showRowNumber: false, width: '100%', height: '100%', });
+            chart.draw(data, options);
+            datoscsv = data;
+            bexportcsv.style.display = 'flex';
+            }
+            
+            /**
+
+        *Representación mensual
+        * @return  {void}
+
+         */
+            RepresentacionMeses = function(mesvisualizado)
+            {
+                    //Creamos los valores a representar con las cabeceras de los archivos
+                        for (L = 0; L &lt; elementosSel.length; L++)
+                            dataArray[0].push(arrayselect[elementosSel[L]]);
+                        cargar = 1;
+                        if (rango2.indexOf("") > -1)
+                        rango2.splice(rango2.indexOf(""),1);
+                        if (rango2.includes("RENDIMIENTO") || rango2.includes("Control"))
+                        rango2 = [];
+                        for (var x = 1; x &lt; dataArray[0].length; x++) {
+                            if (dataArray[0][x].trim().substring(dataArray[0][x].indexOf(""),dataArray[0][x].indexOf("O ")) == "RENDIMIENTO" &amp;&amp; rango2.includes("RENDIMIENTO")==false)
+                            rango2.push("RENDIMIENTO");
+
+                            if (dataArray[0][x].trim().substring(dataArray[0][x].indexOf("F")-1,dataArray[0][x].indexOf("O ")) == "FUNCIONAMIENTO" &amp;&amp; rango2.includes("Control")==false)
+                            rango2.push("Control");
+                            rango = dataArray[0][x].substring(dataArray[0][x].lastIndexOf("[") + 1, dataArray[0][x].lastIndexOf("]"));
+                            rango3[x - 1] = { targetAxisIndex: -1 };
+                        }
+                        var vaxes1 = rango2[0];
+                        if (rango == "W") vaxes1 = "kWh";
+                        if (rango == "C") vaxes1 = "Temperatura Media ºC";
+                        if (rango2.length > 1)
+                        {alert('La visualización solo se permite para 1 eje')
+                        return;}
+                        if (vaxes1 == "Control") vaxes1 = "Horas";
+                        if (vaxes1 == "RENDIMIENTO") vaxes1 = "";
+                        options = {
+                            series: rango3,
+                            chartArea: {
+                                backgroundColor: {
+                                    stroke: '#d3d3d3',
+                                    strokeWidth: 2
+                                },
+                            },
+                            height: 600,
+                            vAxes: {
+                                0: { title: vaxes1, },
+                                1: { title: "", },
+                                2: { title: "", textPosition: 'in' },
+                            },
+                            hAxis: {
+                                title: 'Meses',
+                                titleTextStyle: { color: '#333' },
+                                gridlines: { color: 'transparent', count: 'none' },
+                            },
+                            vAxis: {
+                                minValue: 0,
+                                format: 'long',
+                                gridlines: { color: 'transparent', count: 'none' },
+                            },
+                            baselineColor: 'transparent',
+                            title: 'Resultados',
+                            legend: { position: 'top' },
+                            
+                        };
+                        if (mesvisualizado == 1) {
+                            for (var dt = 0; dt &lt; dataArray.length; dt++) {
+                                if (dataArray[dt][0] == undefined)
+                                    dataArray.splice(dt, 1);
+                            }
+                            //Creamos la tabla, gráfica y los datos de resultados
+                            chart = new google.visualization.ColumnChart(document.querySelector('#chart_div'));
+                            data = new google.visualization.arrayToDataTable(dataArray);
+                            chart.draw(data, options);
+                            var table = new google.visualization.Table(document.getElementById('table_div'));
+                            table.draw(data, { showRowNumber: false, width: '100%', height: '100%', });
+                            datoscsv = data;
+                            bexportcsv.style.display = 'flex';
+                        }
+                        else
+                            alert('ERROR: El rango de selección tiene que abarcar al menos un mes completo');
+            }
+            resultadosrepresentardatos = function (mesvisualizado) {
+                if (radsel == 0) //Horaria
+                RepresentacionHoraria();
+                if (radsel == 1) 
+                RepresentacionMeses(mesvisualizado);
+            }
+        }
+        PaginaInicioGraficos(),HerramientasGraficos(),SelectorVariables(),ResultadosDemanda(),ResultadosConsumo(),ResultadosIntegrados(),Ejecuccion();
+    }
+Loaders(),ResultadosGraficos(),PaginaInicioResultados();
+}
+}]);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Wed Jul 01 2020 08:35:45 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
