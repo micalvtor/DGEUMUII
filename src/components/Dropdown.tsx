@@ -36,25 +36,22 @@ constructor(props:IHeaderProps){
       
     }
   }) 
-  const Button = () => {
-    const {buttonGreen} = useStyles()
-    return(  <td  id='div1' className={buttonGreen}>AAAA</td>)
-  }
+  
   const menuGroup = this.props.displayFinal.map((menuItems:IMenuItem, index:number) => {
     return (<MenuItem key={index}  desplegable={menuItems.desplegable} factores={menuItems.factores} seccion={menuItems.seccion}/>);
   })
-  
+  const Button = () => {
+    const {buttonGreen} = useStyles()
+    return(  <button  id='div1' className={buttonGreen}>{menuGroup[0]}</button>)
+  }
     return (
       
       <div>
       <table id="divNormal">
       
         <tr>
-          {Button}
-        <td  id='div1' className="dropdown">
-    { menuGroup[0]}
-
-</td>
+         
+        {Button}
           
     
     <td  id='div2'className="dropdown">
