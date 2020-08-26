@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {createUseStyles} from 'react-jss';
 import "../assets/scss/Dropdown.scss";  
 import {IMenuItem} from "../state/globalState";
 import MenuItem from '../components/MenuItem';
@@ -10,6 +11,7 @@ interface IHeaderState{
   displayFinal: IMenuItem[];
 
 }
+
 class Dropdown extends React.Component<IHeaderProps,IHeaderState> {
 constructor(props:IHeaderProps){
  super(props);
@@ -17,19 +19,42 @@ constructor(props:IHeaderProps){
 };
 
  public render() {
-  
+   
+  const useStyles = createUseStyles({
+    buttonGreen: {
+      backgroundColor: "#981E32",
+      border:"3px solid #FDC82F",
+      color: "#FDC82F",
+      fontFamily:  "Times New Roman",
+      fontSize: "110%",
+      marginRight:"-10%",
+      maxHeight:20,
+      maxWidth:160,
+      minWidth:160,
+      textAlign: "center",
+      verticalAlign: "top",
+      
+    }
+  }) 
+  const Button = () => {
+    const {buttonGreen} = useStyles()
+    return(  <td  id='div1' className={buttonGreen}>AAAA</td>)
+  }
   const menuGroup = this.props.displayFinal.map((menuItems:IMenuItem, index:number) => {
     return (<MenuItem key={index}  desplegable={menuItems.desplegable} factores={menuItems.factores} seccion={menuItems.seccion}/>);
   })
   
     return (
+      
       <div>
       <table id="divNormal">
       
         <tr>
-         <td  id='div1' className="dropdown">
-        { menuGroup[0]}
-         </td>
+          {Button}
+        <td  id='div1' className="dropdown">
+    { menuGroup[0]}
+
+</td>
           
     
     <td  id='div2'className="dropdown">
@@ -63,4 +88,5 @@ constructor(props:IHeaderProps){
 
 }
 }
+
 export default Dropdown;
